@@ -36,3 +36,17 @@ This doc guides human and autonomous agents working in this monorepo. It summari
 - Frontend: avoid eval/dynamic code; don’t embed secrets; sanitize user-provided strings in UI.
 - Attribution: display “© OpenStreetMap contributors”.
 
+## Branching and PRs
+- Branch naming: `feature/{feature-name}` (kebab-case, concise), e.g., `feature/draw-polygons`.
+- PR title: concise, imperative mood (e.g., “Add polygon drawing tool”).
+- PR description should include:
+  - Context: what problem or requirement this addresses.
+  - Solution: high-level approach and any trade-offs.
+  - Verification: how you tested it (commands, screenshots/GIFs for UI).
+  - Impact: migrations, API changes, performance/security considerations.
+- Checklist before requesting review:
+  - `pnpm lint`, `pnpm typecheck`, `pnpm build` all pass.
+  - Tests added/updated where appropriate; UI states covered.
+  - Docs updated (PRD/Architecture/Plan) if behavior or APIs changed.
+  - API changes reflected in OpenAPI and validation schemas (tsoa) updated.
+  - No secrets or unsafe logs; errors sanitized per guidelines.
