@@ -1,0 +1,176 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"HealthResponse": {
+				"properties": {
+					"status": {
+						"type": "string",
+						"enum": [
+							"ok"
+						],
+						"nullable": false
+					}
+				},
+				"required": [
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"VersionResponse": {
+				"properties": {
+					"version": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"version"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"process.NodeJS.MemoryUsage": {
+				"properties": {
+					"rss": {
+						"type": "number",
+						"format": "double",
+						"description": "Resident Set Size, is the amount of space occupied in the main memory device (that is a subset of the total allocated memory) for the\nprocess, including all C++ and JavaScript objects and code."
+					},
+					"heapTotal": {
+						"type": "number",
+						"format": "double",
+						"description": "Refers to V8's memory usage."
+					},
+					"heapUsed": {
+						"type": "number",
+						"format": "double",
+						"description": "Refers to V8's memory usage."
+					},
+					"external": {
+						"type": "number",
+						"format": "double"
+					},
+					"arrayBuffers": {
+						"type": "number",
+						"format": "double",
+						"description": "Refers to memory allocated for `ArrayBuffer`s and `SharedArrayBuffer`s, including all Node.js Buffers. This is also included\nin the external value. When Node.js is used as an embedded library, this value may be `0` because allocations for `ArrayBuffer`s\nmay not be tracked in that case."
+					}
+				},
+				"required": [
+					"rss",
+					"heapTotal",
+					"heapUsed",
+					"external",
+					"arrayBuffers"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"MetricsResponse": {
+				"properties": {
+					"uptime": {
+						"type": "number",
+						"format": "double"
+					},
+					"memory": {
+						"$ref": "#/components/schemas/process.NodeJS.MemoryUsage"
+					}
+				},
+				"required": [
+					"uptime",
+					"memory"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "@maped/api",
+		"version": "0.0.0",
+		"contact": {}
+	},
+	"paths": {
+		"/health": {
+			"get": {
+				"operationId": "GetHealth",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Health check endpoint",
+				"tags": [
+					"status"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/version": {
+			"get": {
+				"operationId": "GetVersion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VersionResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Version info",
+				"tags": [
+					"status"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
+		"/metrics": {
+			"get": {
+				"operationId": "GetMetrics",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MetricsResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Basic process metrics",
+				"tags": [
+					"status"
+				],
+				"security": [],
+				"parameters": []
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}
