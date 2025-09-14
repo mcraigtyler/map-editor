@@ -4,10 +4,12 @@
 The **Map Editor** is a browser-based, iD-inspired map editing tool built with **React + Vite** on the frontend and **Express + TypeORM + PostGIS + tsoa** on the backend. It focuses on rapid prototyping first, with a clear path to extend into advanced, lane-level road editing.
 
 **Primary context**
-- Reference: OpenStreetMap **iD** editor for UX inspiration and tagging workflows (no code reuse implied).
+- Reference: OpenStreetMap **iD** editor for UX inspiration and tagging workflows (no code reuse implied). https://github.com/openstreetmap/iD
 - **Data source**: OSM **raster** tiles (`tile.openstreetmap.org`) for the prototype; later phases will move to **self-hosted vector tiles** from PostGIS.
 - **Edits** are stored in a private **PostGIS** database; **no syncing to the public OSM DB** in this project.
-- **Lane-level editing**: Users will draw a single line which will represent the center line. The left and right sides of the lane will be created based on a lane width setting. Each line will be tagged according to the **Lanelet2** specification.
+- **Tagging**: As with the OSM iD editor, this editor will make use of https://github.com/openstreetmap/id-tagging-schema for defining tags to be applied to drawing elements.
+- **Lane-level editing**: Users will draw a single line which will represent the center line. The left and right sides of the lane will be created based on a lane width setting. Each line will be tagged according to the **Lanelet2** specification. https://github.com/fzi-forschungszentrum-informatik/Lanelet2
+
 
 **Initial users & environments**
 - Users: **Internal developers** and **internal map editors**.
@@ -15,7 +17,7 @@ The **Map Editor** is a browser-based, iD-inspired map editing tool built with *
 
 ## 2. Goals
 1. Deliver a working **prototype** that lets users draw/edit **points, lines, polygons** and persist them to PostGIS.
-2. Provide a **simple tag editor** for key/value attributes.
+2. Provide a **simple tag editor** for key/value attributes, supporting tagging workflows inspired by OSM iD and id-tagging-schema.
 3. Establish a **resource-centric REST API** (tsoa-decorated controllers) with OpenAPI output.
 4. Prepare an **extensible drawing framework** that can host future tools (e.g., lane-aware road editing).
 5. Phase planning: we will implement features **in phases** (tracked as **Tasks**) to iteratively reach lane-level functionality.
@@ -23,7 +25,7 @@ The **Map Editor** is a browser-based, iD-inspired map editing tool built with *
 ## 3. User Stories
 - As an **internal map editor**, I can pan/zoom a basemap and **create a point** to mark a feature so that it appears on the shared map.
 - As an **internal map editor**, I can **draw a line or polygon**, edit vertices, and save changes so that geometry is persisted.
-- As an **internal map editor**, I can **edit tags** (key/value) for a selected feature in a sidebar and see them reflected immediately.
+- As an **internal map editor**, I can **edit tags** (key/value) for a selected feature in a sidebar and see them reflected immediately, using presets from the id-tagging-schema.
 - As an **internal developer**, I can load features **by viewport (bbox)** on map move so the map stays responsive.
 - As an **internal map editor**, I can **draw a center line** for a road segment. The system will infer the left and right sides of the lane based on a lane width setting. The system will **apply Lanelet2-aligned tags** automatically based on context.
 - As an **internal developer**, I can rely on a **well-typed OpenAPI spec** to generate an API client for the web app.
@@ -44,8 +46,8 @@ The **Map Editor** is a browser-based, iD-inspired map editing tool built with *
 
 **Tagging**
 
-9. The system **must provide** a **basic tag editor** (key/value table or simple form) for selected features.
-10. The system **should support** preset-driven forms **later** (optional in prototype).
+9. The system **must provide** a **basic tag editor** (key/value table or simple form) for selected features, supporting tagging schemas and presets.
+10. The system **should support** preset-driven forms and tag validation using the id-tagging-schema.
 
 **Lane-level Roads (Future)**
 
@@ -79,6 +81,7 @@ The **Map Editor** is a browser-based, iD-inspired map editing tool built with *
 
 ## 6. Design Considerations
 - **Layout**: Map full-bleed; **left sidebar** for selection details and tag editing.
+- **Tagging UX**: Tag editor in sidebar supports key/value editing and preset selection, leveraging id-tagging-schema for suggestions and validation.
 - **Drawing UX**: Click to add vertices, drag handles to edit, double-click to finish; delete via context button.
 - **Extensibility**: A thin “modes/tools” layer in the web app to host future tools (roads, lane helpers). Keep MapLibre bindings isolated so tools are framework-agnostic.
 - **Attribution**: Display “© OpenStreetMap contributors” visibly.
@@ -90,6 +93,7 @@ The **Map Editor** is a browser-based, iD-inspired map editing tool built with *
 - **Containers**: Dockerize a PostgresDB with the PostGIS extension enabled.
 - **DTOs**: `FeatureDTO` `{ id, kind: 'point'|'line'|'polygon'|'road', geom: GeoJSON.Geometry, tags?, createdAt, updatedAt }`.
 - **SRID**: **4326 (WGS84)** for all geometries.
+- **Tagging**: Integrate id-tagging-schema for tag presets and validation in the frontend tag editor.
 - **Lanelets**: Start with manual drawing of center/left/right lines; automated context tagging runs on the client initially (can move server-side later).
 
 ## 8. Success Metrics
