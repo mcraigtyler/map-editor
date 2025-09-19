@@ -10,7 +10,10 @@
     "lint": "eslint src --max-warnings 0",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "openapi": "tsoa spec && tsoa routes",
-    "migration:run": "typeorm-ts-node-commonjs -d src/data-source.ts migration:run"
+    "migration:run": "typeorm migration:run -d dist/data/datasource.js",
+    "migration:revert": "typeorm migration:revert -d dist/data/datasource.js",
+    "migration:show": "typeorm migration:show -d dist/data/datasource.js",
+    "migration:generate": "typeorm migration:generate -d dist/data/datasource.js dist/data/migrations/AutoMigration"
   },
   "dependencies": {
     "@tsoa/runtime": "^6.1.0",

@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { join } from 'path';
 import { config } from '../config';
 
 export const AppDataSource = new DataSource({
@@ -10,8 +9,12 @@ export const AppDataSource = new DataSource({
   username: config.db.user,
   password: config.db.password,
   database: config.db.database,
-  entities: [join(__dirname, 'entities/*.entity.{ts,js}')],
-  migrations: [join(__dirname, 'migrations/*.{ts,js}')],
+  entities: ['dist/data/entities/*.entity.{ts,js}'],
+  migrations: ['dist/data/migrations/*.{ts,js}'],
   synchronize: false,
+  migrationsTableName: 'migration',
+  migrationsTransactionMode: 'each',
+  logging: 'all',
+  logger: 'advanced-console',  
 });
 
