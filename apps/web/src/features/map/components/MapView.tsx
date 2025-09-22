@@ -6,6 +6,14 @@ import maplibregl, {
   NavigationControl,
   StyleSpecification,
 } from 'maplibre-gl';
+import MapboxDraw from 'maplibre-gl-draw';
+import type {
+  DrawCreateEvent,
+  DrawMode,
+  DrawModeChangeEvent,
+  DrawSelectionChangeEvent,
+  DrawUpdateEvent,
+} from '@mapbox/mapbox-gl-draw';
 import type {
   Feature as GeoJsonFeature,
   FeatureCollection as GeoJsonFeatureCollection,
@@ -14,8 +22,12 @@ import type {
 import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useFeatureList } from '~/features/feature/hooks';
+import { ApiError } from '~/lib/apiClient';
+import { useCreateFeatureMutation, useFeatureList } from '~/features/feature/hooks';
 import type { FeatureCollection, FeatureProperties } from '~/features/feature/types';
+import { useDrawingStore } from '~/features/drawing/state';
+import type { DrawingIntent } from '~/features/drawing/state';
+import { fromGeoJsonGeometry, toGeoJsonGeometry } from '~/features/drawing/utils';
 
 const MAP_STYLE: StyleSpecification = {
   version: 8,
@@ -67,6 +79,24 @@ const EMPTY_GEOJSON: MapFeatureCollection = {
 
 type MapFeature = GeoJsonFeature<GeoJsonGeometry, FeatureProperties>;
 type MapFeatureCollection = GeoJsonFeatureCollection<GeoJsonGeometry, FeatureProperties>;
+type DrawFeature = GeoJsonFeature<GeoJsonGeometry, Record<string, unknown>>;
+
+function getDrawModeForIntent(intent: DrawingIntent): DrawMode {
+  switch (intent) {
+    case 'point':
+      return 'draw_point';
+    case 'line':
+      return 'draw_line_string';
+    case 'polygon':
+      return 'draw_polygon';
+    default:
+      return 'draw_point';
+  }
+}
+
+function changeDrawMode(draw: MapboxDraw, mode: DrawMode, options?: object) {
+  (draw as unknown as { changeMode: (mode: DrawMode, options?: object) => void }).changeMode(mode, options);
+}
 
 function toGeoJsonBbox(bbox?: number[]): GeoJsonFeatureCollection['bbox'] | undefined {
   if (!bbox) {
@@ -178,9 +208,20 @@ function updateHighlightFilters(map: Map, featureId: string | undefined) {
 export function MapView() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
   const sourceReadyRef = useRef(false);
   const hasFitToAllRef = useRef(false);
   const lastSelectedRef = useRef<string | undefined>(undefined);
+
+  const { mutate: createFeature } = useCreateFeatureMutation();
+  const createFeatureMutateRef = useRef(createFeature);
+  useEffect(() => {
+    createFeatureMutateRef.current = createFeature;
+  }, [createFeature]);
+
+  const drawingMode = useDrawingStore((state) => state.mode);
+  const drawingIntent = useDrawingStore((state) => state.intent);
+  const editingFeatureId = useDrawingStore((state) => state.editing?.featureId);
 
   const { featureId } = useParams<{ featureId: string }>();
   const { data: collection } = useFeatureList();
@@ -204,8 +245,98 @@ export function MapView() {
       attributionControl: false,
     });
 
+    const draw = new MapboxDraw({
+      displayControlsDefault: false,
+      defaultMode: 'simple_select',
+    });
+
+    const resumeDrawingMode = () => {
+      const state = useDrawingStore.getState();
+      if (state.mode === 'drawing' && state.intent) {
+        changeDrawMode(draw, getDrawModeForIntent(state.intent));
+      }
+    };
+
+    const handleDrawCreate = (event: DrawCreateEvent) => {
+      const state = useDrawingStore.getState();
+      if (state.mode !== 'drawing' || !state.intent) {
+        return;
+      }
+
+      const [created] = event.features as DrawFeature[];
+      if (!created || !created.geometry) {
+        return;
+      }
+
+      const geometry = fromGeoJsonGeometry(created.geometry as GeoJsonGeometry);
+      state.markSaving();
+      draw.deleteAll();
+
+      createFeatureMutateRef.current(
+        {
+          kind: state.intent,
+          geometry,
+          tags: {},
+        },
+        {
+          onSuccess: () => {
+            useDrawingStore.getState().completeDrawing();
+            resumeDrawingMode();
+          },
+          onError: (mutationError) => {
+            const message =
+              mutationError instanceof ApiError
+                ? mutationError.message
+                : 'Failed to create feature.';
+            useDrawingStore.getState().fail(message);
+            resumeDrawingMode();
+          },
+        }
+      );
+    };
+
+    const handleDrawUpdate = (event: DrawUpdateEvent) => {
+      const state = useDrawingStore.getState();
+      if (state.mode !== 'editing' || !state.editing) {
+        return;
+      }
+
+      const [updated] = event.features as DrawFeature[];
+      if (!updated || !updated.geometry) {
+        return;
+      }
+
+      state.setEditingDraft(fromGeoJsonGeometry(updated.geometry as GeoJsonGeometry));
+    };
+
+    const handleSelectionChange = (event: DrawSelectionChangeEvent) => {
+      const state = useDrawingStore.getState();
+      if (state.mode !== 'editing' || !state.editing) {
+        return;
+      }
+
+      const isSelected = event.features.some((feature) => feature.id === state.editing?.featureId);
+      if (!isSelected) {
+        changeDrawMode(draw, 'direct_select', { featureId: state.editing.featureId });
+      }
+    };
+
+    const handleModeChange = (event: DrawModeChangeEvent) => {
+      const state = useDrawingStore.getState();
+      if (state.mode === 'drawing' && state.intent && !state.isSaving && event.mode === 'simple_select') {
+        changeDrawMode(draw, getDrawModeForIntent(state.intent));
+      }
+    };
+
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
     map.addControl(new maplibregl.AttributionControl(ATTRIBUTION_OPTIONS));
+    const drawControl = draw as unknown as maplibregl.IControl;
+    map.addControl(drawControl, 'top-left');
+
+    map.on('draw.create', handleDrawCreate);
+    map.on('draw.update', handleDrawUpdate);
+    map.on('draw.selectionchange', handleSelectionChange);
+    map.on('draw.modechange', handleModeChange);
 
     map.on('load', () => {
       if (!map.getSource(FEATURE_SOURCE_ID)) {
@@ -289,15 +420,76 @@ export function MapView() {
     });
 
     mapRef.current = map;
+    drawRef.current = draw;
 
     return () => {
+      map.off('draw.create', handleDrawCreate);
+      map.off('draw.update', handleDrawUpdate);
+      map.off('draw.selectionchange', handleSelectionChange);
+      map.off('draw.modechange', handleModeChange);
+
       sourceReadyRef.current = false;
       hasFitToAllRef.current = false;
       lastSelectedRef.current = undefined;
+
+      if (drawRef.current) {
+        map.removeControl(drawControl);
+        drawRef.current = null;
+      }
+
       mapRef.current = null;
       map.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const draw = drawRef.current;
+    if (!map || !draw) {
+      return;
+    }
+
+    if (drawingMode === 'drawing') {
+      draw.deleteAll();
+      if (drawingIntent) {
+        changeDrawMode(draw, getDrawModeForIntent(drawingIntent));
+      }
+      return;
+    }
+
+    if (drawingMode === 'editing' && editingFeatureId) {
+      const editing = useDrawingStore.getState().editing;
+      if (!editing) {
+        return;
+      }
+
+      draw.deleteAll();
+      draw.add({
+        id: editing.featureId,
+        type: 'Feature',
+        properties: {},
+        geometry: toGeoJsonGeometry(editing.draftGeometry),
+      } as DrawFeature);
+      changeDrawMode(draw, 'direct_select', { featureId: editing.featureId });
+      return;
+    }
+
+    draw.deleteAll();
+    changeDrawMode(draw, 'simple_select');
+  }, [drawingMode, drawingIntent, editingFeatureId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    if (drawingMode === 'drawing') {
+      map.doubleClickZoom.disable();
+    } else {
+      map.doubleClickZoom.enable();
+    }
+  }, [drawingMode]);
 
   useEffect(() => {
     if (!mapRef.current || !sourceReadyRef.current) {

@@ -16,6 +16,8 @@ type QueryParamValue = string | number | boolean | undefined;
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   searchParams?: Record<string, QueryParamValue>;
+  json?: unknown;
+  body?: BodyInit | null;
 };
 
 const JSON_CONTENT_TYPE = 'application/json';
@@ -57,31 +59,47 @@ function parseResponseBody(rawBody: string, contentType: string | null): unknown
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { searchParams, headers, ...init } = options;
+  const { searchParams, headers, json, body: providedBody, method, ...init } = options;
   const url = buildUrl(path, searchParams);
+  const mergedHeaders = new Headers({ Accept: JSON_CONTENT_TYPE });
+
+  if (headers) {
+    const additional = new Headers(headers as HeadersInit);
+    additional.forEach((value, key) => {
+      mergedHeaders.set(key, value);
+    });
+  }
+
+  if (json !== undefined) {
+    mergedHeaders.set('Content-Type', JSON_CONTENT_TYPE);
+  }
+
+  const requestBody = json !== undefined ? JSON.stringify(json) : providedBody ?? undefined;
+
   const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: JSON_CONTENT_TYPE,
-      ...headers,
-    },
     ...init,
+    method: method ?? 'GET',
+    headers: mergedHeaders,
+    body: requestBody,
   });
 
   const rawBody = await response.text();
-  const body = parseResponseBody(rawBody, response.headers.get('content-type'));
+  const parsedBody = parseResponseBody(rawBody, response.headers.get('content-type'));
 
   if (!response.ok) {
     const message =
-      typeof body === 'object' && body !== null && 'message' in body
-        ? String((body as { message: unknown }).message)
+      typeof parsedBody === 'object' && parsedBody !== null && 'message' in parsedBody
+        ? String((parsedBody as { message: unknown }).message)
         : `Request failed with status ${response.status}`;
-    throw new ApiError(message, response.status, body);
+    throw new ApiError(message, response.status, parsedBody);
   }
 
-  return body as T;
+  return parsedBody as T;
 }
 
 export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'GET' }),
+  post: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'POST' }),
+  put: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'PUT' }),
+  delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'DELETE' }),
 };
