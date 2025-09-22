@@ -16,7 +16,7 @@ export interface GeometryDto {
 
 export interface FeatureProperties {
   kind: FeatureKind;
-  tags: Record<string, unknown>;
+  tags: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,10 +42,15 @@ export interface FeatureCollectionResponse {
 export interface CreateFeatureRequest {
   kind: FeatureKind;
   geometry: GeometryDto;
-  tags?: Record<string, unknown>;
+  tags?: Record<string, string>;
 }
 
 export type UpdateFeatureRequest = CreateFeatureRequest;
+
+export interface UpdateFeatureTagsRequest {
+  set?: Record<string, string>;
+  delete?: string[];
+}
 
 export interface FeatureListQuery {
   bbox?: BBox;

@@ -101,5 +101,6 @@ export const apiClient = {
   get: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'GET' }),
   post: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'POST' }),
   put: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'PUT' }),
+  patch: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'PATCH' }),
   delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'DELETE' }),
 };

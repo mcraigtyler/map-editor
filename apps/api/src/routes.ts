@@ -106,16 +106,16 @@ const models: TsoaRoute.Models = {
         "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["point"]},{"dataType":"enum","enums":["line"]},{"dataType":"enum","enums":["polygon"]},{"dataType":"enum","enums":["road"]}],"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Record_string.unknown_": {
+    "Record_string.string_": {
         "dataType": "refAlias",
-        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{},"additionalProperties":{"dataType":"any"},"validators":{}},
+        "type": {"dataType":"nestedObjectLiteral","nestedProperties":{},"additionalProperties":{"dataType":"string"},"validators":{}},
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "FeatureProperties": {
         "dataType": "refObject",
         "properties": {
             "kind": {"ref":"FeatureKind","required":true},
-            "tags": {"ref":"Record_string.unknown_","required":true},
+            "tags": {"ref":"Record_string.string_","required":true},
             "createdAt": {"dataType":"string","required":true},
             "updatedAt": {"dataType":"string","required":true},
         },
@@ -149,7 +149,7 @@ const models: TsoaRoute.Models = {
         "properties": {
             "kind": {"ref":"FeatureKind","required":true},
             "geometry": {"ref":"GeometryDto","required":true},
-            "tags": {"ref":"Record_string.unknown_"},
+            "tags": {"ref":"Record_string.string_"},
         },
         "additionalProperties": false,
     },
@@ -157,6 +157,15 @@ const models: TsoaRoute.Models = {
     "UpdateFeatureRequest": {
         "dataType": "refAlias",
         "type": {"ref":"CreateFeatureRequest","validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UpdateFeatureTagsRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "set": {"ref":"Record_string.string_"},
+            "delete": {"dataType":"array","array":{"dataType":"string"}},
+        },
+        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 };
@@ -375,6 +384,37 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'updateFeature',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsFeatureController_updateFeatureTags: Record<string, TsoaRoute.ParameterSchema> = {
+                featureId: {"in":"path","name":"featureId","required":true,"dataType":"string"},
+                body: {"in":"body","name":"body","required":true,"ref":"UpdateFeatureTagsRequest"},
+        };
+        app.patch('/features/:featureId/tags',
+            ...(fetchMiddlewares<RequestHandler>(FeatureController)),
+            ...(fetchMiddlewares<RequestHandler>(FeatureController.prototype.updateFeatureTags)),
+
+            async function FeatureController_updateFeatureTags(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsFeatureController_updateFeatureTags, request, response });
+
+                const controller = new FeatureController();
+
+              await templateService.apiHandler({
+                methodName: 'updateFeatureTags',
                 controller,
                 response,
                 next,

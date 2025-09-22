@@ -13,10 +13,14 @@ export interface FeatureListParams {
 export interface FeatureCreateParams {
   kind: FeatureKind;
   geometry: Geometry;
-  tags: Record<string, unknown>;
+  tags: Record<string, string>;
 }
 
 export type FeatureUpdateParams = FeatureCreateParams;
+
+export interface FeatureTagUpdateParams {
+  tags: Record<string, string>;
+}
 
 export class FeatureRepository {
   private readonly repository = AppDataSource.getRepository(FeatureEntity);
@@ -89,6 +93,28 @@ export class FeatureRepository {
       .where('id = :id', { id })
       .setParameters({
         geometry: JSON.stringify(params.geometry),
+        tags: JSON.stringify(params.tags ?? {}),
+      })
+      .returning('*')
+      .execute();
+
+    const updatedRow = result.raw[0] as { id?: string } | undefined;
+    if (!updatedRow?.id) {
+      return null;
+    }
+
+    return this.findById(updatedRow.id);
+  }
+
+  async updateTags(id: string, params: FeatureTagUpdateParams): Promise<FeatureEntity | null> {
+    const result = await this.repository
+      .createQueryBuilder()
+      .update()
+      .set({
+        tags: () => ':tags::jsonb',
+      })
+      .where('id = :id', { id })
+      .setParameters({
         tags: JSON.stringify(params.tags ?? {}),
       })
       .returning('*')

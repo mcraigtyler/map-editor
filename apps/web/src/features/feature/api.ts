@@ -5,6 +5,7 @@ import type {
   FeatureCollection,
   FeatureListParams,
   FeatureMutationPayload,
+  UpdateFeatureTagsPayload,
 } from './types';
 
 type ListSearchParams = Record<string, string>;
@@ -47,4 +48,11 @@ export async function createFeature(payload: FeatureMutationPayload): Promise<Fe
 
 export async function updateFeature(featureId: string, payload: FeatureMutationPayload): Promise<Feature> {
   return apiClient.put<Feature>(`/features/${featureId}`, { json: payload });
+}
+
+export async function updateFeatureTags(
+  featureId: string,
+  payload: UpdateFeatureTagsPayload
+): Promise<Feature> {
+  return apiClient.patch<Feature>(`/features/${featureId}/tags`, { json: payload });
 }
