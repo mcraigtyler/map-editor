@@ -1,19 +1,24 @@
+import { ReactNode } from 'react';
 import { Panel } from 'primereact/panel';
 
 import { environment } from '~/config/environment';
+import { FeatureListPanel } from '~/features/feature/components/FeatureListPanel';
 
-export function Sidebar() {
+type SidebarProps = {
+  children?: ReactNode;
+};
+
+export function Sidebar({ children }: SidebarProps) {
   return (
     <div className="sidebar" aria-label="Map editor controls">
       <header className="sidebar__header">
         <h1 className="sidebar__title">Map Editor</h1>
-        <p className="sidebar__subtitle">Draw, inspect, and edit map features.</p>
-      </header>
-      <Panel header="Getting started" toggleable>
-        <p className="sidebar__text">
-          Pan and zoom the map to explore the basemap. Drawing and editing tools will appear here in upcoming phases.
+        <p className="sidebar__subtitle">
+          Browse map features, inspect their details, and visualize them on the map.
         </p>
-      </Panel>
+      </header>
+      <FeatureListPanel />
+      {children}
       <Panel header="API configuration" className="sidebar__panel">
         <p className="sidebar__text">
           Base URL:&nbsp;
