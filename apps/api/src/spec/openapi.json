@@ -7,6 +7,81 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"DomainError": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"stack": {
+						"type": "string"
+					},
+					"status": {
+						"type": "number",
+						"format": "double"
+					},
+					"details": {}
+				},
+				"required": [
+					"name",
+					"message",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ValidationError": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"stack": {
+						"type": "string"
+					},
+					"status": {
+						"type": "number",
+						"format": "double"
+					},
+					"details": {}
+				},
+				"required": [
+					"name",
+					"message",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"NotFoundError": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"stack": {
+						"type": "string"
+					},
+					"status": {
+						"type": "number",
+						"format": "double"
+					},
+					"details": {}
+				},
+				"required": [
+					"name",
+					"message",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"HealthResponse": {
 				"properties": {
 					"status": {
@@ -88,6 +163,173 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"GeometryType": {
+				"type": "string",
+				"enum": [
+					"Point",
+					"MultiPoint",
+					"LineString",
+					"MultiLineString",
+					"Polygon",
+					"MultiPolygon"
+				]
+			},
+			"GeometryDto": {
+				"properties": {
+					"type": {
+						"$ref": "#/components/schemas/GeometryType"
+					},
+					"coordinates": {}
+				},
+				"required": [
+					"type",
+					"coordinates"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"FeatureKind": {
+				"type": "string",
+				"enum": [
+					"point",
+					"line",
+					"polygon",
+					"road"
+				]
+			},
+			"Record_string.unknown_": {
+				"properties": {},
+				"additionalProperties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"FeatureProperties": {
+				"properties": {
+					"kind": {
+						"$ref": "#/components/schemas/FeatureKind"
+					},
+					"tags": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					},
+					"createdAt": {
+						"type": "string"
+					},
+					"updatedAt": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"kind",
+					"tags",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"FeatureResponse": {
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"Feature"
+						],
+						"nullable": false
+					},
+					"id": {
+						"type": "string"
+					},
+					"geometry": {
+						"$ref": "#/components/schemas/GeometryDto"
+					},
+					"properties": {
+						"$ref": "#/components/schemas/FeatureProperties"
+					}
+				},
+				"required": [
+					"type",
+					"id",
+					"geometry",
+					"properties"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"FeatureCollectionResponse": {
+				"properties": {
+					"type": {
+						"type": "string",
+						"enum": [
+							"FeatureCollection"
+						],
+						"nullable": false
+					},
+					"features": {
+						"items": {
+							"$ref": "#/components/schemas/FeatureResponse"
+						},
+						"type": "array"
+					},
+					"bbox": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array"
+					},
+					"pagination": {
+						"properties": {
+							"offset": {
+								"type": "number",
+								"format": "double"
+							},
+							"limit": {
+								"type": "number",
+								"format": "double"
+							},
+							"total": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"offset",
+							"limit",
+							"total"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"type",
+					"features",
+					"pagination"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateFeatureRequest": {
+				"properties": {
+					"kind": {
+						"$ref": "#/components/schemas/FeatureKind"
+					},
+					"geometry": {
+						"$ref": "#/components/schemas/GeometryDto"
+					},
+					"tags": {
+						"$ref": "#/components/schemas/Record_string.unknown_"
+					}
+				},
+				"required": [
+					"kind",
+					"geometry"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateFeatureRequest": {
+				"$ref": "#/components/schemas/CreateFeatureRequest"
 			}
 		},
 		"securitySchemes": {}
@@ -165,6 +407,466 @@
 				],
 				"security": [],
 				"parameters": []
+			}
+		},
+		"/features": {
+			"get": {
+				"operationId": "ListFeatures",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FeatureCollectionResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"type": "FeatureCollection",
+											"bbox": [
+												-0.1,
+												-0.1,
+												0.1,
+												0.1
+											],
+											"features": [
+												{
+													"type": "Feature",
+													"id": "8d91a8c9-9a73-4f25-bfe1-2eac898d0c04",
+													"geometry": {
+														"type": "Point",
+														"coordinates": [
+															0,
+															0
+														]
+													},
+													"properties": {
+														"kind": "point",
+														"tags": {
+															"name": "Null Island"
+														},
+														"createdAt": "2024-01-01T00:00:00.000Z",
+														"updatedAt": "2024-01-01T00:00:00.000Z"
+													}
+												}
+											],
+											"pagination": {
+												"total": 1,
+												"limit": 50,
+												"offset": 0
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "List features optionally filtered by a bounding box.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "bbox",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "offset",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"post": {
+				"operationId": "CreateFeature",
+				"responses": {
+					"201": {
+						"description": "Created",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FeatureResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"type": "Feature",
+											"id": "11111111-1111-1111-1111-111111111111",
+											"geometry": {
+												"type": "LineString",
+												"coordinates": [
+													[
+														-74.00597,
+														40.71427
+													],
+													[
+														-73.98513,
+														40.7589
+													]
+												]
+											},
+											"properties": {
+												"kind": "line",
+												"tags": {
+													"name": "Broadway"
+												},
+												"createdAt": "2024-01-01T00:00:00.000Z",
+												"updatedAt": "2024-01-01T00:00:00.000Z"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a new feature.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateFeatureRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/features/{featureId}": {
+			"get": {
+				"operationId": "GetFeature",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FeatureResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"type": "Feature",
+											"id": "8d91a8c9-9a73-4f25-bfe1-2eac898d0c04",
+											"geometry": {
+												"type": "Point",
+												"coordinates": [
+													0,
+													0
+												]
+											},
+											"properties": {
+												"kind": "point",
+												"tags": {
+													"name": "Null Island"
+												},
+												"createdAt": "2024-01-01T00:00:00.000Z",
+												"updatedAt": "2024-01-01T00:00:00.000Z"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Retrieve a single feature by id.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "featureId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateFeature",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FeatureResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"type": "Feature",
+											"id": "22222222-2222-2222-2222-222222222222",
+											"geometry": {
+												"type": "Polygon",
+												"coordinates": [
+													[
+														[
+															-122.431297,
+															37.773972
+														],
+														[
+															-122.431297,
+															37.783972
+														],
+														[
+															-122.421297,
+															37.783972
+														],
+														[
+															-122.421297,
+															37.773972
+														],
+														[
+															-122.431297,
+															37.773972
+														]
+													]
+												]
+											},
+											"properties": {
+												"kind": "polygon",
+												"tags": {
+													"name": "Sample Block"
+												},
+												"createdAt": "2024-01-01T00:00:00.000Z",
+												"updatedAt": "2024-01-01T00:00:00.000Z"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Replace an existing feature.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "featureId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateFeatureRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteFeature",
+				"responses": {
+					"204": {
+						"description": "No Content"
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete a feature.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "featureId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
 			}
 		}
 	},
