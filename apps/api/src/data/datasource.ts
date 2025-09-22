@@ -9,12 +9,18 @@ export const AppDataSource = new DataSource({
   username: config.db.user,
   password: config.db.password,
   database: config.db.database,
-  entities: ['dist/data/entities/*.entity.{ts,js}'],
-  migrations: ['dist/data/migrations/*.{ts,js}'],
+  entities: [
+    'src/data/entities/*.entity.ts',
+    'dist/data/entities/*.entity.js',
+  ],
+  migrations: [
+    'src/data/migrations/*.ts',
+    'dist/data/migrations/*.js',
+  ],
   synchronize: false,
   migrationsTableName: 'migration',
   migrationsTransactionMode: 'each',
   logging: 'all',
-  logger: 'advanced-console',  
+  logger: 'advanced-console',
 });
 
