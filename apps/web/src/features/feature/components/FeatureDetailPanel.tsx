@@ -5,7 +5,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ApiError } from '~/lib/apiClient';
 
-import { useFeature } from '../hooks';
+import { useDrawingStore } from '~/features/drawing/state';
+import { useFeature, useUpdateFeatureMutation } from '../hooks';
 import type { Feature } from '../types';
 
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
@@ -55,11 +56,74 @@ export function FeatureDetailPanel() {
   const { featureId } = useParams<{ featureId: string }>();
   const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch, isFetching } = useFeature(featureId);
+  const updateFeatureMutation = useUpdateFeatureMutation();
+
+  const drawingMode = useDrawingStore((state) => state.mode);
+  const editingSession = useDrawingStore((state) => state.editing);
+  const isSavingGeometry = useDrawingStore((state) => state.isSaving);
+  const drawingError = useDrawingStore((state) => state.error);
+  const startEditing = useDrawingStore((state) => state.startEditing);
+  const resetDrawingState = useDrawingStore((state) => state.reset);
+  const markSaving = useDrawingStore((state) => state.markSaving);
+  const failDrawing = useDrawingStore((state) => state.fail);
+  const clearDrawingError = useDrawingStore((state) => state.clearError);
 
   const sortedTags = useSortedTags(data);
 
   const handleClose = () => {
+    if (drawingMode === 'editing') {
+      resetDrawingState();
+    }
     navigate('/');
+  };
+
+  const isEditingCurrent = drawingMode === 'editing' && editingSession?.featureId === data?.id;
+  const isEditingAnother = drawingMode === 'editing' && !isEditingCurrent && Boolean(editingSession);
+
+  const handleStartEditing = () => {
+    if (!data) {
+      return;
+    }
+    clearDrawingError();
+    startEditing(data);
+  };
+
+  const handleCancelEditing = () => {
+    resetDrawingState();
+  };
+
+  const handleSaveGeometry = () => {
+    if (!editingSession) {
+      return;
+    }
+
+    clearDrawingError();
+    markSaving();
+
+    const geometry = editingSession.draftGeometry ?? editingSession.originalGeometry;
+
+    updateFeatureMutation.mutate(
+      {
+        featureId: editingSession.featureId,
+        payload: {
+          kind: editingSession.kind,
+          geometry,
+          tags: editingSession.tags,
+        },
+      },
+      {
+        onSuccess: () => {
+          resetDrawingState();
+        },
+        onError: (mutationError) => {
+          const message =
+            mutationError instanceof ApiError
+              ? mutationError.message
+              : 'Failed to update feature geometry.';
+          failDrawing(message);
+        },
+      }
+    );
   };
 
   return (
@@ -104,7 +168,45 @@ export function FeatureDetailPanel() {
               onClick={handleClose}
               type="button"
             />
+            {!isEditingCurrent ? (
+              <Button
+                label="Edit geometry"
+                icon="pi pi-pencil"
+                type="button"
+                onClick={handleStartEditing}
+                disabled={isLoading || isEditingAnother || drawingMode === 'drawing' || isSavingGeometry}
+              />
+            ) : (
+              <>
+                <Button
+                  label="Save geometry"
+                  icon="pi pi-check"
+                  type="button"
+                  onClick={handleSaveGeometry}
+                  loading={isSavingGeometry}
+                />
+                <Button
+                  label="Cancel editing"
+                  icon="pi pi-times"
+                  severity="secondary"
+                  outlined
+                  type="button"
+                  onClick={handleCancelEditing}
+                  disabled={isSavingGeometry}
+                />
+              </>
+            )}
           </div>
+          {isEditingCurrent ? (
+            <p className="feature-detail__status feature-detail__status--info" aria-live="polite">
+              Geometry editing is active. Adjust vertices on the map and save your changes when ready.
+            </p>
+          ) : null}
+          {isEditingCurrent && drawingError ? (
+            <div className="feature-detail__error" role="alert">
+              {drawingError}
+            </div>
+          ) : null}
           <dl className="feature-detail__meta">
             <div className="feature-detail__meta-group">
               <dt>ID</dt>

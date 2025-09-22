@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getFeature } from './api';
+import { createFeature, getFeature, updateFeature } from './api';
 import { featureKeys, featureQueries } from './queries';
-import type { FeatureListParams } from './types';
+import type { FeatureListParams, FeatureMutationPayload } from './types';
 import type { ApiError } from '~/lib/apiClient';
 import type { Feature } from './types';
 
@@ -23,5 +23,34 @@ export function useFeature(featureId: string | undefined) {
     },
     enabled: Boolean(featureId),
     staleTime: DETAIL_STALE_TIME,
+  });
+}
+
+export function useCreateFeatureMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<Feature, ApiError, FeatureMutationPayload>({
+    mutationFn: (payload) => createFeature(payload),
+    onSuccess: (created) => {
+      queryClient.invalidateQueries({ queryKey: featureKeys.list() });
+      queryClient.invalidateQueries({ queryKey: featureKeys.detail(created.id) });
+    },
+  });
+}
+
+type UpdateFeatureVariables = {
+  featureId: string;
+  payload: FeatureMutationPayload;
+};
+
+export function useUpdateFeatureMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<Feature, ApiError, UpdateFeatureVariables>({
+    mutationFn: ({ featureId, payload }) => updateFeature(featureId, payload),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: featureKeys.list() });
+      queryClient.invalidateQueries({ queryKey: featureKeys.detail(updated.id) });
+    },
   });
 }

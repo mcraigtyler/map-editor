@@ -55,7 +55,7 @@ export class FeatureRepository {
       .values({
         kind: params.kind,
         tags: () => ':tags::jsonb',
-        geom: () => 'ST_SetSRID(ST_GeomFromGeoJSON(:geometry)::geometry, 4326)',
+        geom: () => 'ST_SetSRID(ST_GeomFromGeoJSON(:geometry), 4326)',
       })
       .setParameters({
         geometry: JSON.stringify(params.geometry),
@@ -84,7 +84,7 @@ export class FeatureRepository {
       .set({
         kind: params.kind,
         tags: () => ':tags::jsonb',
-        geom: () => 'ST_SetSRID(ST_GeomFromGeoJSON(:geometry)::geometry, 4326)',
+        geom: () => 'ST_SetSRID(ST_GeomFromGeoJSON(:geometry), 4326)',
       })
       .where('id = :id', { id })
       .setParameters({

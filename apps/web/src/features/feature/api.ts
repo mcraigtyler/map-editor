@@ -1,6 +1,11 @@
 import { apiClient } from '~/lib/apiClient';
 
-import type { Feature, FeatureCollection, FeatureListParams } from './types';
+import type {
+  Feature,
+  FeatureCollection,
+  FeatureListParams,
+  FeatureMutationPayload,
+} from './types';
 
 type ListSearchParams = Record<string, string>;
 
@@ -34,4 +39,12 @@ export async function listFeatures(params?: FeatureListParams): Promise<FeatureC
 
 export async function getFeature(featureId: string): Promise<Feature> {
   return apiClient.get<Feature>(`/features/${featureId}`);
+}
+
+export async function createFeature(payload: FeatureMutationPayload): Promise<Feature> {
+  return apiClient.post<Feature>('/features', { json: payload });
+}
+
+export async function updateFeature(featureId: string, payload: FeatureMutationPayload): Promise<Feature> {
+  return apiClient.put<Feature>(`/features/${featureId}`, { json: payload });
 }

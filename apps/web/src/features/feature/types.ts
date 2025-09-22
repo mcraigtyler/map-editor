@@ -18,6 +18,10 @@ export interface FeatureProperties {
   updatedAt: string;
 }
 
+export type FeatureKind = FeatureProperties['kind'];
+
+export type EditableFeatureKind = Extract<FeatureKind, 'point' | 'line' | 'polygon'>;
+
 export interface Feature {
   type: 'Feature';
   id: string;
@@ -41,3 +45,9 @@ export type FeatureListParams = {
   limit?: number;
   offset?: number;
 };
+
+export interface FeatureMutationPayload {
+  kind: FeatureKind;
+  geometry: FeatureGeometry;
+  tags?: Record<string, unknown>;
+}
