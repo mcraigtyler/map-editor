@@ -50,12 +50,15 @@ export class FeatureController extends Controller {
     @Query() limit?: number,
     @Query() offset?: number
   ): Promise<FeatureCollectionResponse> {
+    const parsedBBox = bbox ? parseBBox(bbox) : undefined;
+    if (parsedBBox) {
+      console.log('Requested bbox:', parsedBBox);
+    }
     const query: FeatureListQuery = {
-      bbox: bbox ? parseBBox(bbox) : undefined,
+      bbox: parsedBBox,
       limit,
       offset,
     };
-
     return this.service.listFeatures(query);
   }
 

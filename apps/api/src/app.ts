@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import morgan from 'morgan';
 import { RegisterRoutes } from './routes';
 import { ValidateError } from 'tsoa';
@@ -6,6 +7,7 @@ import { DomainError } from './utils/errors';
 
 export const app = express();
 
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 app.use(express.json());
 app.use(morgan('dev'));
 
