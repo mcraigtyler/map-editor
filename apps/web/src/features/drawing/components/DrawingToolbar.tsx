@@ -29,15 +29,21 @@ export function DrawingToolbar() {
   const isSaving = useDrawingStore((state) => state.isSaving);
   const error = useDrawingStore((state) => state.error);
   const startDrawing = useDrawingStore((state) => state.startDrawing);
+  const startSelecting = useDrawingStore((state) => state.startSelecting);
   const reset = useDrawingStore((state) => state.reset);
   const clearError = useDrawingStore((state) => state.clearError);
 
   const isDrawing = mode === 'drawing';
   const isEditing = mode === 'editing';
+  const isSelecting = mode === 'selecting';
 
   const statusMessage = useMemo(() => {
     if (isSaving) {
       return 'Saving geometry…';
+    }
+
+    if (isSelecting) {
+      return 'Select a feature on the map to focus its details.';
     }
 
     if (isDrawing && intent) {
@@ -48,10 +54,20 @@ export function DrawingToolbar() {
       return 'Editing geometry for the selected feature.';
     }
 
-    return 'Select a drawing mode to create new features.';
-  }, [intent, isDrawing, isEditing, isSaving]);
+    return 'Choose an action to draw, edit, or select map features.';
+  }, [intent, isDrawing, isEditing, isSaving, isSelecting]);
 
-  const hint = intent ? DRAWING_HINTS[intent] : undefined;
+  const hint = useMemo(() => {
+    if (isDrawing && intent) {
+      return DRAWING_HINTS[intent];
+    }
+
+    if (isSelecting) {
+      return 'Click a feature on the map to highlight it.';
+    }
+
+    return undefined;
+  }, [intent, isDrawing, isSelecting]);
 
   const handleStart = (nextIntent: DrawingIntent) => {
     if (isSaving) {
@@ -59,6 +75,21 @@ export function DrawingToolbar() {
     }
     clearError();
     startDrawing(nextIntent);
+  };
+
+  const handleSelect = () => {
+    if (isSaving || isEditing) {
+      return;
+    }
+
+    clearError();
+
+    if (isSelecting) {
+      reset();
+      return;
+    }
+
+    startSelecting();
   };
 
   const handleCancel = () => {
@@ -71,10 +102,18 @@ export function DrawingToolbar() {
   const shouldShowError = Boolean(error) && isDrawing;
 
   return (
-    <Panel header="Geometry tools" className="sidebar__panel">
+    <Panel header="Geometry tools" className="drawing-toolbar__panel">
       <div className="drawing-toolbar" aria-live="polite">
         <p className="drawing-toolbar__status">{statusMessage}</p>
         <div className="drawing-toolbar__actions">
+          <Button
+            label="Select"
+            icon="pi pi-mouse"
+            outlined
+            severity={isSelecting ? 'success' : undefined}
+            onClick={handleSelect}
+            disabled={isSaving || isEditing}
+          />
           {(Object.keys(DRAWING_LABELS) as DrawingIntent[]).map((key) => (
             <Button
               key={key}
@@ -87,11 +126,11 @@ export function DrawingToolbar() {
             />
           ))}
         </div>
-        {isDrawing && hint ? <p className="drawing-toolbar__hint">{hint}</p> : null}
-        {isDrawing ? (
+        {hint ? <p className="drawing-toolbar__hint">{hint}</p> : null}
+        {isDrawing || isSelecting ? (
           <div className="drawing-toolbar__footer">
             <Button
-              label="Cancel drawing"
+              label={isSelecting ? 'Cancel selection' : 'Cancel drawing'}
               icon="pi pi-times"
               severity="secondary"
               outlined

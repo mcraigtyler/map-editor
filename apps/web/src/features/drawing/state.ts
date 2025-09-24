@@ -4,7 +4,7 @@ import type { Feature, FeatureGeometry, FeatureProperties } from '../feature/typ
 import type { EditableFeatureKind } from '../feature/types';
 import { cloneGeometry } from './utils';
 
-export type DrawingMode = 'idle' | 'drawing' | 'editing';
+export type DrawingMode = 'idle' | 'drawing' | 'editing' | 'selecting';
 export type DrawingIntent = EditableFeatureKind;
 
 interface EditingSession {
@@ -22,6 +22,7 @@ interface DrawingState {
   isSaving: boolean;
   error?: string;
   startDrawing: (intent: EditableFeatureKind) => void;
+  startSelecting: () => void;
   startEditing: (feature: Feature) => void;
   setEditingDraft: (geometry: FeatureGeometry) => void;
   markSaving: () => void;
@@ -42,6 +43,14 @@ export const useDrawingStore = create<DrawingState>((set) => ({
     set({
       mode: 'drawing',
       intent,
+      editing: undefined,
+      isSaving: false,
+      error: undefined,
+    }),
+  startSelecting: () =>
+    set({
+      mode: 'selecting',
+      intent: undefined,
       editing: undefined,
       isSaving: false,
       error: undefined,

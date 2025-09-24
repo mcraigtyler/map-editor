@@ -3,6 +3,7 @@ import maplibregl, {
   LegacyFilterSpecification,
   LngLatLike,
   Map,
+  MapLayerMouseEvent,
   NavigationControl,
   StyleSpecification,
 } from 'maplibre-gl';
@@ -20,7 +21,7 @@ import type {
   Geometry as GeoJsonGeometry,
 } from 'geojson';
 import { useEffect, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { ApiError } from '~/lib/apiClient';
 import { useCreateFeatureMutation, useFeatureList } from '~/features/feature/hooks';
@@ -66,7 +67,9 @@ const SELECTED_POINT_LAYER_ID = 'selected-feature-point';
 const BASE_POINT_COLOR = '#2563eb';
 const BASE_LINE_COLOR = '#2563eb';
 const BASE_FILL_COLOR = '#38bdf8';
-const HIGHLIGHT_COLOR = '#f97316';
+const HIGHLIGHT_LINE_COLOR = '#facc15';
+const HIGHLIGHT_FILL_COLOR = '#fde68a';
+const HIGHLIGHT_POINT_COLOR = '#facc15';
 
 const BASE_LINE_FILTER: LegacyFilterSpecification = ['in', '$type', 'LineString', 'Polygon'];
 const BASE_FILL_FILTER: LegacyFilterSpecification = ['==', '$type', 'Polygon'];
@@ -212,6 +215,11 @@ export function MapView() {
   const sourceReadyRef = useRef(false);
   const hasFitToAllRef = useRef(false);
   const lastSelectedRef = useRef<string | undefined>(undefined);
+  const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  useEffect(() => {
+    navigateRef.current = navigate;
+  }, [navigate]);
 
   const { mutate: createFeature } = useCreateFeatureMutation();
   const createFeatureMutateRef = useRef(createFeature);
@@ -328,6 +336,27 @@ export function MapView() {
       }
     };
 
+    const handleFeatureClick = (event: MapLayerMouseEvent) => {
+      const state = useDrawingStore.getState();
+      if (state.mode !== 'selecting') {
+        return;
+      }
+
+      const features = event.features as MapFeature[] | undefined;
+      if (!features || features.length === 0) {
+        return;
+      }
+
+      const [clicked] = features;
+      const featureId = clicked?.id;
+      if (featureId === undefined || featureId === null) {
+        return;
+      }
+
+      navigateRef.current(`/features/${String(featureId)}`);
+      useDrawingStore.getState().reset();
+    };
+
     map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
     map.addControl(new maplibregl.AttributionControl(ATTRIBUTION_OPTIONS));
     const drawControl = draw as unknown as maplibregl.IControl;
@@ -337,6 +366,9 @@ export function MapView() {
     map.on('draw.update', handleDrawUpdate);
     map.on('draw.selectionchange', handleSelectionChange);
     map.on('draw.modechange', handleModeChange);
+    map.on('click', FEATURE_FILL_LAYER_ID, handleFeatureClick);
+    map.on('click', FEATURE_LINE_LAYER_ID, handleFeatureClick);
+    map.on('click', FEATURE_POINT_LAYER_ID, handleFeatureClick);
 
     map.on('load', () => {
       if (!map.getSource(FEATURE_SOURCE_ID)) {
@@ -386,8 +418,9 @@ export function MapView() {
         type: 'fill',
         source: FEATURE_SOURCE_ID,
         paint: {
-          'fill-color': HIGHLIGHT_COLOR,
-          'fill-opacity': 0.35,
+          'fill-color': HIGHLIGHT_FILL_COLOR,
+          'fill-opacity': 0.45,
+          'fill-outline-color': HIGHLIGHT_LINE_COLOR,
         },
         filter: ['all', BASE_FILL_FILTER, ['==', '$id', '__none__']] as LegacyFilterSpecification,
       });
@@ -397,8 +430,9 @@ export function MapView() {
         type: 'line',
         source: FEATURE_SOURCE_ID,
         paint: {
-          'line-color': HIGHLIGHT_COLOR,
-          'line-width': 4,
+          'line-color': HIGHLIGHT_LINE_COLOR,
+          'line-width': 5,
+          'line-blur': 0.5,
         },
         filter: ['all', BASE_LINE_FILTER, ['==', '$id', '__none__']] as LegacyFilterSpecification,
       });
@@ -408,10 +442,12 @@ export function MapView() {
         type: 'circle',
         source: FEATURE_SOURCE_ID,
         paint: {
-          'circle-color': HIGHLIGHT_COLOR,
-          'circle-radius': 9,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-width': 2,
+          'circle-color': HIGHLIGHT_POINT_COLOR,
+          'circle-radius': 10,
+          'circle-blur': 0.2,
+          'circle-opacity': 0.95,
+          'circle-stroke-color': '#fef3c7',
+          'circle-stroke-width': 3,
         },
         filter: ['all', BASE_POINT_FILTER, ['==', '$id', '__none__']] as LegacyFilterSpecification,
       });
@@ -427,6 +463,9 @@ export function MapView() {
       map.off('draw.update', handleDrawUpdate);
       map.off('draw.selectionchange', handleSelectionChange);
       map.off('draw.modechange', handleModeChange);
+      map.off('click', FEATURE_FILL_LAYER_ID, handleFeatureClick);
+      map.off('click', FEATURE_LINE_LAYER_ID, handleFeatureClick);
+      map.off('click', FEATURE_POINT_LAYER_ID, handleFeatureClick);
 
       sourceReadyRef.current = false;
       hasFitToAllRef.current = false;
@@ -437,6 +476,7 @@ export function MapView() {
         drawRef.current = null;
       }
 
+      map.getCanvas().style.cursor = '';
       mapRef.current = null;
       map.remove();
     };
@@ -488,6 +528,19 @@ export function MapView() {
       map.doubleClickZoom.disable();
     } else {
       map.doubleClickZoom.enable();
+    }
+  }, [drawingMode]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    if (drawingMode === 'selecting') {
+      map.getCanvas().style.cursor = 'pointer';
+    } else if (map.getCanvas().style.cursor === 'pointer') {
+      map.getCanvas().style.cursor = '';
     }
   }, [drawingMode]);
 
