@@ -69,7 +69,23 @@ Goal: Attach & edit attribute tags on features.
 - Update endpoints supporting partial metadata changes
 - UI editing panel with optimistic updates
 
-## Phase 8: Performance & Caching
+## Phase 8: UI Cleanup
+- Remove the `API Configuration` section in the sidebar
+- When a feature is selected make that features line/marker 'glow' to make it look highlighted. At the very least change the color of the lines/points to be a different, more visible, color.
+- Move `Geometry tools` as a floating toolbar centered at the top of the map
+- Add a `Select` option to the `Geometry tools` that when picked the next feature selected in the map will be the selected/highlighted feature. This should also show the feature as selected in the Features list in the Sidebar.
+- The `Features` list in the sidebar should be a scrollable list with a row per feature. Only show the Type, Updated DateTime and number of points that make up the feature.
+- Allow for deleting of a feature in the sidbar list of `Features`
+
+## Phase 9: Tag Editor
+
+
+## Phase 10: Feature Styles
+
+
+## Phase ??: API Cleanup/Refactor
+
+## Phase ??: Performance & Caching
 Goal: Smooth map interaction & scalable API.
 - Server-side bbox query optimization benchmark
 - Add HTTP caching headers / ETag strategy
@@ -77,21 +93,21 @@ Goal: Smooth map interaction & scalable API.
 - Client cache invalidation rules
 - Index / analyze slow queries
 
-## Phase 9: Auth & Access Control (Foundational)
+## Phase ??: Auth & Access Control (Foundational)
 Goal: Minimal secure perimeter.
 - Authentication strategy selection (OIDC stub or token-based)
 - Auth middleware + protected routes
 - Role/claim model (editor vs read-only)
 - Frontend auth context + login/logout flows (stub if external IdP pending)
 
-## Phase 10: Vector Tile Migration Preparation
+## Phase ??: Vector Tile Migration Preparation
 Goal: Architectural readiness for vector tiles later.
 - Evaluate pg_tileserv / Tegola / Martin (spike + decision record)
 - Define tile layer schema & style JSON draft
 - Prototype MVT generation query (ST_AsMVT) on sample data
 - Abstraction layer in frontend (raster vs vector source toggle)
 
-## Phase 11: QA, Observability & Hardening
+## Phase ??: QA, Observability & Hardening
 Goal: Production-grade reliability.
 - Add structured logging + correlation IDs
 - Metrics & basic tracing (OpenTelemetry exporter selection)
@@ -100,28 +116,28 @@ Goal: Production-grade reliability.
 - Write initial critical path tests
 - Security review (dependency audit, headers, rate limiting)
 
-## Phase 12: Documentation & Dev Experience
+## Phase ??: Documentation & Dev Experience
 Goal: Clear onboarding & API usability.
 - API reference publishing (bundled OpenAPI + docs site)
 - Architecture & decisions (ADR index)
 - User guide: create/edit feature, tagging workflow
 - Runbook: local dev, migrations, common issues
 
-## Phase 13: Pre-Release Stabilization
+## Phase ??: Pre-Release Stabilization
 Goal: Feature-complete MVP ready for stakeholders.
 - Bug triage & stabilization sprints
 - Performance regression tests
 - Final data migration / seed sanity check
 - Release checklist execution
 
-## Phase 14: Initial Production Release
+## Phase ??: Initial Production Release
 Goal: Deployed MVP.
 - Production infrastructure provisioning (DB, app runtime, CDN)
 - Deployment automation (CI -> environment)
 - Monitoring dashboards + alert thresholds
 - Post-release validation & rollback plan
 
-## Phase 15: Post-Release Enhancements (Future Epics)
+## Phase ??: Post-Release Enhancements (Future Epics)
 Goal: Strategic roadmap placeholders.
 - Full vector tile switchover
 - Advanced editing (multi-select, topology validation)
