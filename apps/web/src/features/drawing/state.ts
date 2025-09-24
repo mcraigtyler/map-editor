@@ -10,7 +10,7 @@ export type DrawingIntent = EditableFeatureKind;
 interface EditingSession {
   featureId: string;
   kind: FeatureProperties['kind'];
-  tags: Record<string, unknown>;
+  tags: Record<string, string>;
   originalGeometry: FeatureGeometry;
   draftGeometry: FeatureGeometry;
 }
@@ -31,8 +31,8 @@ interface DrawingState {
   clearError: () => void;
 }
 
-function cloneTags(tags: Record<string, unknown>): Record<string, unknown> {
-  return JSON.parse(JSON.stringify(tags ?? {}));
+function cloneTags(tags: Record<string, string>): Record<string, string> {
+  return { ...tags };
 }
 
 export const useDrawingStore = create<DrawingState>((set) => ({

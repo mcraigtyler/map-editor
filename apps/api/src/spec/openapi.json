@@ -198,9 +198,11 @@
 					"road"
 				]
 			},
-			"Record_string.unknown_": {
+			"Record_string.string_": {
 				"properties": {},
-				"additionalProperties": {},
+				"additionalProperties": {
+					"type": "string"
+				},
 				"type": "object",
 				"description": "Construct a type with a set of properties K of type T"
 			},
@@ -210,7 +212,7 @@
 						"$ref": "#/components/schemas/FeatureKind"
 					},
 					"tags": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
+						"$ref": "#/components/schemas/Record_string.string_"
 					},
 					"createdAt": {
 						"type": "string"
@@ -318,7 +320,7 @@
 						"$ref": "#/components/schemas/GeometryDto"
 					},
 					"tags": {
-						"$ref": "#/components/schemas/Record_string.unknown_"
+						"$ref": "#/components/schemas/Record_string.string_"
 					}
 				},
 				"required": [
@@ -330,6 +332,21 @@
 			},
 			"UpdateFeatureRequest": {
 				"$ref": "#/components/schemas/CreateFeatureRequest"
+			},
+			"UpdateFeatureTagsRequest": {
+				"properties": {
+					"set": {
+						"$ref": "#/components/schemas/Record_string.string_"
+					},
+					"delete": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -867,6 +884,102 @@
 						}
 					}
 				]
+			}
+		},
+		"/features/{featureId}/tags": {
+			"patch": {
+				"operationId": "UpdateFeatureTags",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/FeatureResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"type": "Feature",
+											"id": "33333333-3333-3333-3333-333333333333",
+											"geometry": {
+												"type": "Point",
+												"coordinates": [
+													0,
+													0
+												]
+											},
+											"properties": {
+												"kind": "point",
+												"tags": {
+													"name": "Null Island",
+													"description": "Updated description"
+												},
+												"createdAt": "2024-01-01T00:00:00.000Z",
+												"updatedAt": "2024-01-02T12:00:00.000Z"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Feature not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundError"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationError"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DomainError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Apply partial tag updates to a feature.",
+				"tags": [
+					"features"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "featureId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateFeatureTagsRequest"
+							}
+						}
+					}
+				}
 			}
 		}
 	},

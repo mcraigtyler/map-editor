@@ -1,12 +1,13 @@
 import { Button } from 'primereact/button';
 import { Panel } from 'primereact/panel';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { ApiError } from '~/lib/apiClient';
 
 import { useDrawingStore } from '~/features/drawing/state';
-import { useFeature, useUpdateFeatureMutation } from '../hooks';
+import { TagEditor } from '~/features/tagging/components/TagEditor';
+import { useFeature, useUpdateFeatureMutation, useUpdateFeatureTagsMutation } from '../hooks';
 import type { Feature } from '../types';
 
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
@@ -23,27 +24,14 @@ function formatDate(value: string): string {
   }
 }
 
-function formatTagValue(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-
-  if (typeof value === 'object') {
-    try {
-      return JSON.stringify(value);
-    } catch (error) {
-      console.warn('Failed to stringify tag value', error);
-      return String(value);
-    }
-  }
-
-  return String(value);
+function formatTagValue(value: string): string {
+  return value;
 }
 
 function useSortedTags(feature: Feature | undefined) {
   return useMemo(() => {
     if (!feature) {
-      return [] as Array<[string, unknown]>;
+      return [] as Array<[string, string]>;
     }
 
     return Object.entries(feature.properties.tags ?? {}).sort(([a], [b]) =>
@@ -52,11 +40,48 @@ function useSortedTags(feature: Feature | undefined) {
   }, [feature]);
 }
 
+interface TagDiff {
+  set: Record<string, string>;
+  delete: string[];
+}
+
+function diffTags(current: Record<string, string>, next: Record<string, string>): TagDiff {
+  const set: Record<string, string> = {};
+  const toDelete: string[] = [];
+
+  Object.entries(next).forEach(([key, value]) => {
+    if (current[key] !== value) {
+      set[key] = value;
+    }
+  });
+
+  Object.keys(current).forEach((key) => {
+    if (!(key in next)) {
+      toDelete.push(key);
+    }
+  });
+
+  return { set, delete: toDelete };
+}
+
 export function FeatureDetailPanel() {
   const { featureId } = useParams<{ featureId: string }>();
   const navigate = useNavigate();
   const { data, isLoading, isError, error, refetch, isFetching } = useFeature(featureId);
   const updateFeatureMutation = useUpdateFeatureMutation();
+  const {
+    mutate: mutateFeatureTags,
+    isPending: isUpdatingTags,
+    reset: resetFeatureTagsMutation,
+  } = useUpdateFeatureTagsMutation();
+  const [isEditingTags, setIsEditingTags] = useState(false);
+  const [tagFormError, setTagFormError] = useState<string | undefined>();
+
+  useEffect(() => {
+    setIsEditingTags(false);
+    setTagFormError(undefined);
+    resetFeatureTagsMutation();
+  }, [featureId, resetFeatureTagsMutation]);
 
   const drawingMode = useDrawingStore((state) => state.mode);
   const editingSession = useDrawingStore((state) => state.editing);
@@ -74,11 +99,23 @@ export function FeatureDetailPanel() {
     if (drawingMode === 'editing') {
       resetDrawingState();
     }
+    if (isEditingTags) {
+      setIsEditingTags(false);
+    }
+    setTagFormError(undefined);
+    resetFeatureTagsMutation();
     navigate('/');
   };
 
   const isEditingCurrent = drawingMode === 'editing' && editingSession?.featureId === data?.id;
   const isEditingAnother = drawingMode === 'editing' && !isEditingCurrent && Boolean(editingSession);
+  const isTagEditDisabled =
+    isEditingTags ||
+    isEditingAnother ||
+    drawingMode === 'drawing' ||
+    isSavingGeometry ||
+    isEditingCurrent ||
+    isUpdatingTags;
 
   const handleStartEditing = () => {
     if (!data) {
@@ -121,6 +158,62 @@ export function FeatureDetailPanel() {
               ? mutationError.message
               : 'Failed to update feature geometry.';
           failDrawing(message);
+        },
+      }
+    );
+  };
+
+  const handleStartEditingTags = () => {
+    if (!data) {
+      return;
+    }
+    resetFeatureTagsMutation();
+    setTagFormError(undefined);
+    setIsEditingTags(true);
+  };
+
+  const handleCancelTagEditing = () => {
+    resetFeatureTagsMutation();
+    setTagFormError(undefined);
+    setIsEditingTags(false);
+  };
+
+  const handleSubmitTags = (nextTags: Record<string, string>) => {
+    if (!data) {
+      return;
+    }
+
+    const currentTags = data.properties.tags ?? {};
+    const changes = diffTags(currentTags, nextTags);
+    const hasSet = Object.keys(changes.set).length > 0;
+    const hasDelete = changes.delete.length > 0;
+
+    if (!hasSet && !hasDelete) {
+      setTagFormError('No changes to save.');
+      return;
+    }
+
+    setTagFormError(undefined);
+
+    mutateFeatureTags(
+      {
+        featureId: data.id,
+        payload: {
+          ...(hasSet ? { set: changes.set } : {}),
+          ...(hasDelete ? { delete: changes.delete } : {}),
+        },
+      },
+      {
+        onSuccess: () => {
+          setIsEditingTags(false);
+          setTagFormError(undefined);
+        },
+        onError: (mutationError) => {
+          const message =
+            mutationError instanceof ApiError
+              ? mutationError.message
+              : 'Failed to update feature tags.';
+          setTagFormError(message);
         },
       }
     );
@@ -174,7 +267,13 @@ export function FeatureDetailPanel() {
                 icon="pi pi-pencil"
                 type="button"
                 onClick={handleStartEditing}
-                disabled={isLoading || isEditingAnother || drawingMode === 'drawing' || isSavingGeometry}
+                disabled={
+                  isLoading ||
+                  isEditingAnother ||
+                  drawingMode === 'drawing' ||
+                  isSavingGeometry ||
+                  isEditingTags
+                }
               />
             ) : (
               <>
@@ -232,8 +331,30 @@ export function FeatureDetailPanel() {
             </div>
           </dl>
           <section className="feature-detail__tags">
-            <h3 className="feature-detail__tags-title">Tags</h3>
-            {sortedTags.length === 0 ? (
+            <div className="feature-detail__tags-header">
+              <h3 className="feature-detail__tags-title">Tags</h3>
+              {!isEditingTags ? (
+                <Button
+                  type="button"
+                  label="Edit tags"
+                  icon="pi pi-pencil"
+                  severity="secondary"
+                  outlined
+                  onClick={handleStartEditingTags}
+                  disabled={isTagEditDisabled}
+                />
+              ) : null}
+            </div>
+            {isEditingTags ? (
+              <TagEditor
+                key={`${data.id}-${data.properties.updatedAt}`}
+                initialTags={data.properties.tags ?? {}}
+                isSubmitting={isUpdatingTags}
+                errorMessage={tagFormError}
+                onSubmit={handleSubmitTags}
+                onCancel={handleCancelTagEditing}
+              />
+            ) : sortedTags.length === 0 ? (
               <p className="feature-detail__status">No tags recorded for this feature.</p>
             ) : (
               <ul className="feature-detail__tag-list">

@@ -269,6 +269,14 @@ body {
   gap: 0.5rem;
 }
 
+.feature-detail__tags-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .feature-detail__tags-title {
   margin: 0;
   font-weight: 600;
@@ -300,6 +308,78 @@ body {
   flex: 1;
   text-align: right;
   word-break: break-word;
+}
+
+.tag-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tag-editor__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tag-editor__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.tag-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tag-editor__label {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.tag-editor__field-index {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--text-color-secondary, #64748b);
+  margin-left: 0.25rem;
+}
+
+.tag-editor__field-error {
+  color: #b91c1c;
+  font-size: 0.8rem;
+}
+
+.tag-editor__empty {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-color-secondary, #64748b);
+}
+
+.tag-editor__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.tag-editor__spacer {
+  flex: 1 1 auto;
+}
+
+.tag-editor__remove {
+  justify-self: end;
+}
+
+.tag-editor__error {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background-color: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font-size: 0.9rem;
 }
 
 .map-view {

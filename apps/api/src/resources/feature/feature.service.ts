@@ -3,6 +3,7 @@ import { FeatureEntity, FeatureKind } from '../../data/entities/feature.entity';
 import { FeatureRepository } from '../../data/repositories/feature.repository';
 import { isValidGeometry } from '../../utils/geometry';
 import { InternalServerError, NotFoundError, ValidationError } from '../../utils/errors';
+import { ZodError } from 'zod';
 import {
   CreateFeatureRequest,
   FeatureCollectionResponse,
@@ -12,7 +13,9 @@ import {
   GeometryDto,
   GeometryType,
   UpdateFeatureRequest,
+  UpdateFeatureTagsRequest,
 } from './feature.resource';
+import { TagMutation, TagRecord, tagMutationSchema, tagRecordSchema } from './tag.schema';
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
@@ -88,6 +91,24 @@ export class FeatureService {
     return this.toFeatureResponse(entity);
   }
 
+  async updateFeatureTags(id: string, payload: UpdateFeatureTagsRequest): Promise<FeatureResponse> {
+    const mutation = this.parseTagMutation(payload);
+    const existing = await this.repository.findById(id);
+    if (!existing) {
+      throw new NotFoundError('Feature', id);
+    }
+
+    const currentTags = this.cloneTags(existing.tags);
+    const nextTags = this.applyTagMutation(currentTags, mutation);
+
+    const updated = await this.repository.updateTags(id, { tags: nextTags });
+    if (!updated) {
+      throw new NotFoundError('Feature', id);
+    }
+
+    return this.toFeatureResponse(updated);
+  }
+
   async deleteFeature(id: string): Promise<void> {
     const deleted = await this.repository.delete(id);
     if (!deleted) {
@@ -124,14 +145,17 @@ export class FeatureService {
     return offset;
   }
 
-  private validateTags(tags?: Record<string, unknown>): Record<string, unknown> {
+  private validateTags(tags?: Record<string, unknown>): TagRecord {
     if (tags === undefined) {
       return {};
     }
-    if (tags === null || typeof tags !== 'object' || Array.isArray(tags)) {
-      throw new ValidationError('tags must be an object', { tags });
+
+    const result = tagRecordSchema.safeParse(tags);
+    if (!result.success) {
+      throw new ValidationError('tags failed validation', this.formatZodIssues(result.error));
     }
-    return { ...tags };
+
+    return result.data;
   }
 
   private normalizeGeometry(input: GeometryDto, kind: FeatureKind): Geometry {
@@ -197,17 +221,76 @@ export class FeatureService {
     return geometry as unknown as GeometryDto;
   }
 
-  private cloneTags(tags: FeatureEntity['tags']): Record<string, unknown> {
+  private cloneTags(tags: FeatureEntity['tags']): TagRecord {
     if (tags === null || tags === undefined) {
       return {};
     }
     if (typeof tags !== 'object' || Array.isArray(tags)) {
       throw new InternalServerError('Stored tags are invalid');
     }
-    return { ...tags };
+    const cloned: TagRecord = {};
+    for (const [key, value] of Object.entries(tags)) {
+      if (typeof value !== 'string') {
+        throw new InternalServerError('Stored tag value is invalid', { key, value });
+      }
+      cloned[key] = value;
+    }
+    return cloned;
   }
 
   private isSupportedGeometryType(type: Geometry['type']): type is GeometryType {
     return SUPPORTED_GEOMETRY_TYPES.has(type as GeometryType);
+  }
+
+  private parseTagMutation(payload: UpdateFeatureTagsRequest): TagMutation {
+    const result = tagMutationSchema.safeParse(payload);
+    if (!result.success) {
+      throw new ValidationError('tag changes failed validation', this.formatZodIssues(result.error));
+    }
+
+    const mutation = result.data;
+    const dedupedDelete = mutation.delete ? this.dedupeKeys(mutation.delete) : undefined;
+    return {
+      ...mutation,
+      delete: dedupedDelete && dedupedDelete.length > 0 ? dedupedDelete : undefined,
+    };
+  }
+
+  private applyTagMutation(current: TagRecord, mutation: TagMutation): TagRecord {
+    const next: TagRecord = { ...current };
+
+    if (mutation.delete) {
+      for (const key of mutation.delete) {
+        delete next[key];
+      }
+    }
+
+    if (mutation.set) {
+      for (const [key, value] of Object.entries(mutation.set)) {
+        next[key] = value;
+      }
+    }
+
+    return next;
+  }
+
+  private dedupeKeys(keys: string[]): string[] {
+    const seen = new Set<string>();
+    const deduped: string[] = [];
+    for (const key of keys) {
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(key);
+      }
+    }
+    return deduped;
+  }
+
+  private formatZodIssues(error: ZodError): unknown {
+    return error.issues.map((issue) => ({
+      message: issue.message,
+      path: issue.path,
+      code: issue.code,
+    }));
   }
 }

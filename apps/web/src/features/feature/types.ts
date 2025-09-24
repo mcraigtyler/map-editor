@@ -13,7 +13,7 @@ export interface FeatureGeometry {
 
 export interface FeatureProperties {
   kind: 'point' | 'line' | 'polygon' | 'road';
-  tags: Record<string, unknown>;
+  tags: Record<string, string>;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,5 +49,10 @@ export type FeatureListParams = {
 export interface FeatureMutationPayload {
   kind: FeatureKind;
   geometry: FeatureGeometry;
-  tags?: Record<string, unknown>;
+  tags?: Record<string, string>;
+}
+
+export interface UpdateFeatureTagsPayload {
+  set?: Record<string, string>;
+  delete?: string[];
 }

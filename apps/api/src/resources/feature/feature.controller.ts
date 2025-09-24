@@ -1,4 +1,19 @@
-import { Body, Controller, Delete, Get, Path, Post, Put, Query, Response, Route, SuccessResponse, Tags, Example } from 'tsoa';
+import {
+  Body,
+  Controller,
+  Delete,
+  Example,
+  Get,
+  Patch,
+  Path,
+  Post,
+  Put,
+  Query,
+  Response,
+  Route,
+  SuccessResponse,
+  Tags,
+} from 'tsoa';
 import { parseBBox } from '../../utils/bbox';
 import { FeatureService } from './feature.service';
 import {
@@ -7,6 +22,7 @@ import {
   FeatureListQuery,
   FeatureResponse,
   UpdateFeatureRequest,
+  UpdateFeatureTagsRequest,
 } from './feature.resource';
 import { DomainError, NotFoundError, ValidationError } from '../../utils/errors';
 
@@ -136,6 +152,29 @@ export class FeatureController extends Controller {
     @Body() body: UpdateFeatureRequest
   ): Promise<FeatureResponse> {
     return this.service.updateFeature(featureId, body);
+  }
+
+  /** Apply partial tag updates to a feature. */
+  @Patch('{featureId}/tags')
+  @Example<FeatureResponse>({
+    type: 'Feature',
+    id: '33333333-3333-3333-3333-333333333333',
+    geometry: {
+      type: 'Point',
+      coordinates: [0, 0],
+    },
+    properties: {
+      kind: 'point',
+      tags: { name: 'Null Island', description: 'Updated description' },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-02T12:00:00.000Z',
+    },
+  })
+  public async updateFeatureTags(
+    @Path() featureId: string,
+    @Body() body: UpdateFeatureTagsRequest
+  ): Promise<FeatureResponse> {
+    return this.service.updateFeatureTags(featureId, body);
   }
 
   /** Delete a feature. */

@@ -21,7 +21,7 @@ export class FeatureEntity {
   geom!: Geometry;
 
   @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
-  tags!: Record<string, unknown>;
+  tags!: Record<string, string>;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
