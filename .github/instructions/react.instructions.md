@@ -34,19 +34,61 @@ These instructions guide GitHub Copilot to produce consistent, high-quality code
 src/
   main.tsx                 # createRoot + RouterProvider
   app/
-    routes/                # route modules (lazy)
-      index.tsx            # home
-      users/
-        index.tsx          # list
-        $userId.tsx        # detail
-    layouts/
-      RootLayout.tsx       # shell (nav/header/sidebar/outlet)
-  components/              # reusable PrimeReact-based components
-  hooks/                   # custom hooks
+    layouts/               # shared layouts
+      RootLayout.tsx
+  pages/                   # all route pages (each page has its own folder)
+  components/              # reusable components promoted from pages
+  hooks/                   # reusable hooks promoted from pages
   lib/                     # apiClient, query keys, utils
   styles/                  # theme overrides, global.css
-  tests/                   # unit/integration
+  tests/                   # shared utilities for testing
 ```
+
+## 📁 Pages & Component Organization
+
+- All top-level routes live in `/src/pages`.
+- Each page has its **own folder** under `/pages`.
+- **Never** put all UI/controls inline in one big page file — always break down into smaller components/hooks, even if only used in that page.
+- Each page folder acts as a **mini-module**, containing its layout, components, hooks, types, and tests.
+
+### ✅ Standard Naming Convention
+
+Inside `/src/pages/{pageName}`:
+
+- `index.tsx` → **entry point only**. Re-exports the main page component for routing. Must not contain UI logic.
+- `{pageName}.tsx` → main page component, top-level container.
+- `{pageName}-*.tsx` → supporting components (`home-grid.tsx`, `user-form.tsx`).
+- `{pageName}.hooks.ts` → custom hooks scoped to the page.
+- `{pageName}.types.ts` → shared TS types/interfaces.
+- `{pageName}.test.tsx` → tests for the main page. Supporting components may also have their own `*.test.tsx`.
+- `{pageName}.stories.tsx` → optional Storybook stories colocated with the component.
+
+### ✅ Example Structure
+
+```
+src/
+  pages/
+    home/
+      index.tsx           # re-exports HomePage
+      home.tsx            # main page component
+      home-grid.tsx       # subcomponent
+      home-panel.tsx      # subcomponent
+      home.hooks.ts       # page-specific hooks
+      home.types.ts       # page-specific types
+      home.test.tsx       # test for HomePage
+      home-grid.test.tsx  # test for subcomponent
+```
+
+### ✅ Promotion Guidelines
+
+- Components/hooks start inside their page folder.
+- If reused across multiple pages, **promote** them to `/src/components` or `/src/hooks`.
+- Update imports accordingly.
+
+### 🚫 Anti-Pattern
+
+- Don’t define multiple large components inline inside the page file.
+- Don’t put page logic directly in `index.tsx`.
 
 ## 🧭 Routing Conventions (react-router-dom)
 
@@ -91,7 +133,7 @@ src/
 
 - Re-creating standard controls instead of using PrimeReact equivalents.
 - Mixing multiple CSS frameworks; keep to PrimeReact + PrimeFlex (and tiny overrides).
-- Uncontrolled inputs in complex forms—prefer `react-hook-form`.
+- Uncontrolled inputs in complex forms — prefer `react-hook-form`.
 
 ## 📦 Example Copilot “Scaffolds” It Should Produce
 
