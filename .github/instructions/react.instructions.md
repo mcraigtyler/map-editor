@@ -55,4 +55,47 @@ src/
 - Use **loaders/actions** when appropriate for data fetching/mutations (or colocate TanStack Query inside routes).
 - Route files co-located by feature; **nest** where it improves organization.
 
-(... trimmed for brevity ...)
+## 🎨 UI & Styling (PrimeReact)
+
+- Import theme + core styles once in `main.tsx` or `styles/global.css`:
+  - `primereact/resources/themes/lara-light-blue/theme.css`
+  - `primereact/resources/primereact.min.css`
+  - `primeicons/primeicons.css`
+  - (Optional) **PrimeFlex** for layout utilities
+- Prefer component props and theme tokens over custom CSS; use small scoped overrides when needed.
+- Validation: add `p-invalid` class and `<small className="p-error">` helpers.
+
+## 🔌 Data & API
+
+- Create a typed `apiClient` (Fetch or Axios) with:
+  - Base URL, auth, and error normalization.
+  - Helpers for GET/POST/PUT/DELETE returning typed data.
+- For server state, use **TanStack Query**; include all inputs in `queryKey`.
+- Mutations: optimistic updates with rollback where safe; invalidate on success.
+
+## 🧪 Testing
+
+- Use React Testing Library; test behavior and accessibility (roles/labels).
+- For routes, wrap tests with `MemoryRouter` and render route elements.
+- Mock network (MSW suggested) and test loading/empty/error states.
+
+## ✅ Patterns to Prefer
+
+- **Lazy-loaded** route modules for code-splitting.
+- **Toast** for notifications; **Dialog** for modals; **ConfirmDialog** for confirms.
+- **DataTable** for tabular data (pagination/sort/filter as needed).
+- **react-hook-form + zod** for forms (`InputText`, `Dropdown`, `Calendar`, `Password`, `Checkbox`, etc.).
+- **PrimeIcons** via `icon="pi pi-..."` on PrimeReact components.
+
+## 🚫 Patterns to Avoid
+
+- Re-creating standard controls instead of using PrimeReact equivalents.
+- Mixing multiple CSS frameworks; keep to PrimeReact + PrimeFlex (and tiny overrides).
+- Uncontrolled inputs in complex forms—prefer `react-hook-form`.
+
+## 📦 Example Copilot “Scaffolds” It Should Produce
+
+- **Form with validation + PrimeReact controls** (with `p-invalid` and error text).
+- **Paginated DataTable** wired to TanStack Query with `queryKey` and `queryFn`.
+- **Route module** with `lazy` export and loader, plus suspense boundaries.
+- **Toast** usage via `Toast` ref and `toast.current?.show({ severity: 'success', ... })`.
