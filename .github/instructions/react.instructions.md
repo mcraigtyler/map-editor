@@ -56,9 +56,10 @@ src/
 
 Inside `/src/pages/{pageName}`:
 
+- Capitalize the page and component names. It helps differentiate pages from HTML elements.
 - `index.tsx` → **entry point only**. Re-exports the main page component for routing. Must not contain UI logic.
 - `{pageName}.tsx` → main page component, top-level container.
-- `{pageName}-*.tsx` → supporting components (`home-grid.tsx`, `user-form.tsx`).
+- `{pageName}{componentName}.tsx` → supporting components (`HomeGrid.tsx`, `UserForm.tsx`).
 - `{pageName}.hooks.ts` → custom hooks scoped to the page.
 - `{pageName}.types.ts` → shared TS types/interfaces.
 - `{pageName}.test.tsx` → tests for the main page. Supporting components may also have their own `*.test.tsx`.
@@ -69,15 +70,15 @@ Inside `/src/pages/{pageName}`:
 ```
 src/
   pages/
-    home/
+    Home/
       index.tsx           # re-exports HomePage
-      home.tsx            # main page component
-      home-grid.tsx       # subcomponent
-      home-panel.tsx      # subcomponent
-      home.hooks.ts       # page-specific hooks
-      home.types.ts       # page-specific types
-      home.test.tsx       # test for HomePage
-      home-grid.test.tsx  # test for subcomponent
+      Home.tsx            # main page component
+      Home.test.tsx       # test for HomePage
+      Home.hooks.ts       # page-specific hooks
+      Home.types.ts       # page-specific types
+      HomeGrid.tsx        # subcomponent
+      HomeGrid.test.tsx   # test for subcomponent
+      HomePanel.tsx      # subcomponent
 ```
 
 ### ✅ Promotion Guidelines
