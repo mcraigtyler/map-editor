@@ -39,6 +39,7 @@ src/
   pages/                   # all route pages (each page has its own folder)
   components/              # reusable components promoted from pages
   hooks/                   # reusable hooks promoted from pages
+  providers/               # global context providers
   lib/                     # apiClient, query keys, utils
   styles/                  # theme overrides, global.css
   tests/                   # shared utilities for testing
@@ -96,6 +97,91 @@ src/
 - Prefer **lazy routes** with `lazy()` and code-split each route.
 - Use **loaders/actions** when appropriate for data fetching/mutations (or colocate TanStack Query inside routes).
 - Route files co-located by feature; **nest** where it improves organization.
+
+## 🗂️ Context State Management
+
+### General Principles
+
+- **Use context sparingly**: only for cross-cutting or shared state that cannot be easily passed via props.
+- **Page-specific contexts** → colocate inside the page folder.  
+- **Global contexts** → live in `/src/providers`.  
+- **Never** store server state in context (TanStack Query is responsible for that).  
+- **Split contexts by concern** — one context per responsibility (e.g., AuthContext, ThemeContext). Avoid giant “AppContext”.
+
+### Hybrid Composition Strategy
+
+- **Global providers**: composed in `/src/providers/AppProviders.tsx`, used once in `main.tsx`.  
+- **Page/feature providers**: defined inside each page folder and wrapped in a `FeatureProviders.tsx` at the route level.  
+- Keeps globals clean and avoids over-nesting.
+
+### Example Global AppProviders
+
+```tsx
+// src/providers/AppProviders.tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './auth';
+import { ThemeProvider } from './theme';
+
+const queryClient = new QueryClient();
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>{children}</ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+```tsx
+// main.tsx
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
+  </React.StrictMode>
+);
+```
+
+### Example Page Providers
+
+```tsx
+// src/pages/home/HomeProviders.tsx
+import { HomeContextProvider } from './home.context';
+
+export function HomeProviders({ children }: { children: React.ReactNode }) {
+  return <HomeContextProvider>{children}</HomeContextProvider>;
+}
+```
+
+Used at the route level:
+
+```tsx
+{
+  path: 'home',
+  element: (
+    <HomeProviders>
+      <HomePage />
+    </HomeProviders>
+  ),
+}
+```
+
+### Performance Guidelines
+
+- Use `React.memo` for context consumers that render frequently.  
+- Use `useCallback`/`useMemo` when passing functions or derived values to providers.  
+- Keep context values stable — don’t inline objects or functions unless memoized.  
+- If context usage leads to excessive re-renders or boilerplate, **escalate to Zustand** for state management.
+
+### 🚫 Anti-Patterns
+
+- Avoid deeply nesting contexts inline in `main.tsx`. Compose them once in `AppProviders`.  
+- Don’t use one “mega-context” for unrelated concerns.  
+- Don’t replace React Query with context for server state.
 
 ## 🎨 UI & Styling (PrimeReact)
 
