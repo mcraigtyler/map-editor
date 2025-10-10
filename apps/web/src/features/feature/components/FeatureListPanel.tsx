@@ -68,9 +68,9 @@ function countFeaturePoints(feature: Feature): number {
 
 function formatPointCount(count: number): string {
   if (count === 1) {
-    return '1 point';
+    return '1';
   }
-  return `${count} points`;
+  return `${count}`;
 }
 
 export function FeatureListPanel() {
@@ -148,8 +148,16 @@ export function FeatureListPanel() {
         </p>
       ) : (
         <div className="feature-list__scroll" role="region" aria-label="Loaded map features">
+          {/* Column headers */}
+          <div className="feature-list__header" aria-hidden="true">
+            <div className="feature-list__select feature-list__select--header">
+              <span className="feature-list__col-label">Type</span>
+              <span className="feature-list__col-label">Points</span>
+            </div>
+            <div />
+          </div>
           <ul className="feature-list">
-            {rows.map(({ feature, updatedAt, pointCount }) => {
+            {rows.map(({ feature, pointCount }) => {
               const isSelected = selectedFeatureId === feature.id;
               const rowClassName = isSelected
                 ? 'feature-list__row feature-list__row--active'
@@ -167,21 +175,14 @@ export function FeatureListPanel() {
                       disabled={isDeleting}
                     >
                       <span className="feature-list__field">
-                        <span className="feature-list__label">Type</span>
                         <span className="feature-list__value">{formatFeatureKind(feature.properties.kind)}</span>
                       </span>
                       <span className="feature-list__field">
-                        <span className="feature-list__label">Updated</span>
-                        <span className="feature-list__value">{updatedAt}</span>
-                      </span>
-                      <span className="feature-list__field">
-                        <span className="feature-list__label">Points</span>
                         <span className="feature-list__value">{formatPointCount(pointCount)}</span>
                       </span>
                     </button>
                     <Button
                       icon="pi pi-trash"
-                      label="Delete"
                       severity="danger"
                       text
                       className="feature-list__delete"

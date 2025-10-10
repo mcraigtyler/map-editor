@@ -24,7 +24,7 @@ body {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 400px 1fr;
   height: 100%;
   max-height: 100vh;
 }
@@ -186,7 +186,7 @@ body {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.3rem;
 }
 
 .feature-list__item {
@@ -203,10 +203,10 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
   border: 1px solid var(--surface-border, #dfe3e8);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background-color: var(--surface-card, #ffffff);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
@@ -223,8 +223,8 @@ body {
 
 .feature-list__select {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 0.5rem;
   border: none;
   background: none;
   padding: 0;
@@ -250,6 +250,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .feature-list__label {
@@ -260,8 +261,11 @@ body {
 }
 
 .feature-list__value {
-  font-weight: 600;
+  font-weight: 400; /* was 600; row text now normal weight */
   word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .feature-list__delete {
@@ -485,3 +489,58 @@ body {
     border-bottom: 1px solid var(--surface-border, #dfe3e8);
   }
 }
+
+/* Feature list layout tightening overrides */
+.feature-list__row {
+  /* Slightly more horizontal space inside rows */
+  padding: 0.25rem 0.5rem;
+}
+
+.feature-list__select {
+  /* Reduce column minimum so two columns fit in ~272px content width (320px - sidebar padding) */
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 0.5rem; /* tighter gap */
+}
+
+.feature-list__field {
+  min-width: 0; /* allow flex/grid children to shrink */
+}
+
+.feature-list__value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* prevent wrapping that forces stacking */
+}
+
+/* Optional small-width fallback to single column if extremely narrow */
+@media (max-width: 340px) {
+  .feature-list__select {
+    grid-template-columns: 1fr; /* stack when too narrow */
+  }
+}
+
+.feature-list__header {
+  display: grid;
+  grid-template-columns: 1fr auto; /* match row layout (button + delete) */
+  align-items: center;
+  padding: 0 0.5rem 0.25rem; /* slight bottom separation */
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-color-secondary, #64748b);
+}
+
+.feature-list__select--header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.feature-list__col-label {
+  font-weight: bolder;
+  font-size: larger;
+}
+
+/* Hide labels inside rows now; keep structure for accessibility (already removed label spans in TSX) */
