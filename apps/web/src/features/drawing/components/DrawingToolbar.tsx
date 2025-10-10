@@ -37,26 +37,6 @@ export function DrawingToolbar() {
   const isEditing = mode === 'editing';
   const isSelecting = mode === 'selecting';
 
-  const statusMessage = useMemo(() => {
-    if (isSaving) {
-      return 'Saving geometry…';
-    }
-
-    if (isSelecting) {
-      return 'Select a feature on the map to focus its details.';
-    }
-
-    if (isDrawing && intent) {
-      return `Drawing a ${intent} feature.`;
-    }
-
-    if (isEditing) {
-      return 'Editing geometry for the selected feature.';
-    }
-
-    return 'Choose an action to draw, edit, or select map features.';
-  }, [intent, isDrawing, isEditing, isSaving, isSelecting]);
-
   const hint = useMemo(() => {
     if (isDrawing && intent) {
       return DRAWING_HINTS[intent];
@@ -102,9 +82,8 @@ export function DrawingToolbar() {
   const shouldShowError = Boolean(error) && isDrawing;
 
   return (
-    <Panel header="Geometry tools" className="drawing-toolbar__panel">
+    <Panel className="drawing-toolbar__panel">
       <div className="drawing-toolbar" aria-live="polite">
-        <p className="drawing-toolbar__status">{statusMessage}</p>
         <div className="drawing-toolbar__actions">
           <Button
             label="Select"
@@ -126,9 +105,9 @@ export function DrawingToolbar() {
             />
           ))}
         </div>
-        {hint ? <p className="drawing-toolbar__hint">{hint}</p> : null}
         {isDrawing || isSelecting ? (
           <div className="drawing-toolbar__footer">
+            {hint ? <p className="drawing-toolbar__hint">{hint}</p> : null}
             <Button
               label={isSelecting ? 'Cancel selection' : 'Cancel drawing'}
               icon="pi pi-times"

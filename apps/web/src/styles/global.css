@@ -97,10 +97,12 @@ body {
 
 .drawing-toolbar__panel .p-panel-header {
   font-weight: 600;
+  padding: 0.5rem;
 }
 
 .drawing-toolbar__panel :where(.p-panel-header, .p-panel-content) {
   border: none;
+  padding: 0.5rem;
 }
 
 .drawing-toolbar {
@@ -123,6 +125,8 @@ body {
 
 .drawing-toolbar__hint {
   margin: 0;
+  margin-right: 1.5rem;
+  align-content: center;
   font-size: 0.85rem;
   color: var(--text-color-secondary, #64748b);
 }
