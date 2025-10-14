@@ -191,12 +191,13 @@
 			},
 			"FeatureKind": {
 				"type": "string",
-				"enum": [
-					"point",
-					"line",
-					"polygon",
-					"road"
-				]
+                                "enum": [
+                                        "point",
+                                        "line",
+                                        "polygon",
+                                        "road",
+                                        "lanelet"
+                                ]
 			},
 			"Record_string.string_": {
 				"properties": {},

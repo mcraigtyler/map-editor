@@ -25,6 +25,7 @@ const GEOMETRY_BY_KIND: Record<FeatureKind, GeometryType[]> = {
   line: ['LineString', 'MultiLineString'],
   polygon: ['Polygon', 'MultiPolygon'],
   road: ['LineString', 'MultiLineString'],
+  lanelet: ['MultiLineString'],
 };
 const SUPPORTED_GEOMETRY_TYPES = new Set<GeometryType>(
   Object.values(GEOMETRY_BY_KIND).flat() as GeometryType[]

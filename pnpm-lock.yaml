@@ -64,7 +64,7 @@ importers:
         version: 6.6.0
       typeorm:
         specifier: ^0.3.20
-        version: 0.3.26(pg@8.16.3)(reflect-metadata@0.1.14)(ts-node@10.9.2(@types/node@20.19.14)(typescript@5.3.3))
+        version: 0.3.26(pg@8.16.3)(reflect-metadata@0.1.14)(ts-node@10.9.2(@types/node@20.19.14)(typescript@5.9.2))
       zod:
         specifier: ^3.22.4
         version: 3.25.76
@@ -92,10 +92,10 @@ importers:
         version: 4.1.8
       ts-node:
         specifier: ^10.9.1
-        version: 10.9.2(@types/node@20.19.14)(typescript@5.3.3)
+        version: 10.9.2(@types/node@20.19.14)(typescript@5.9.2)
       ts-node-dev:
         specifier: ^2.0.0
-        version: 2.0.0(@types/node@20.19.14)(typescript@5.3.3)
+        version: 2.0.0(@types/node@20.19.14)(typescript@5.9.2)
       typeorm-ts-node-commonjs:
         specifier: ^0.3.20
         version: 0.3.20
@@ -105,6 +105,12 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.32.1
         version: 5.89.0(react@18.3.1)
+      '@turf/helpers':
+        specifier: ^5.1.5
+        version: 5.1.5
+      '@turf/line-offset':
+        specifier: ^5.1.5
+        version: 5.1.5
       maplibre-gl:
         specifier: ^3.5.2
         version: 3.6.2
@@ -5704,7 +5710,7 @@ snapshots:
   geojson-rbush@2.1.0:
     dependencies:
       '@turf/helpers': 5.1.5
-      '@turf/meta': 5.1.6
+      '@turf/meta': 6.5.0
       rbush: 4.0.1
 
   geojson-validation@1.0.2: {}
@@ -6897,7 +6903,7 @@ snapshots:
 
   ts-deepmerge@7.0.3: {}
 
-  ts-node-dev@2.0.0(@types/node@20.19.14)(typescript@5.3.3):
+  ts-node-dev@2.0.0(@types/node@20.19.14)(typescript@5.9.2):
     dependencies:
       chokidar: 3.6.0
       dynamic-dedupe: 0.3.0
@@ -6907,15 +6913,15 @@ snapshots:
       rimraf: 2.7.1
       source-map-support: 0.5.21
       tree-kill: 1.2.2
-      ts-node: 10.9.2(@types/node@20.19.14)(typescript@5.3.3)
+      ts-node: 10.9.2(@types/node@20.19.14)(typescript@5.9.2)
       tsconfig: 7.0.0
-      typescript: 5.3.3
+      typescript: 5.9.2
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
       - '@types/node'
 
-  ts-node@10.9.2(@types/node@20.19.14)(typescript@5.3.3):
+  ts-node@10.9.2(@types/node@20.19.14)(typescript@5.9.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.11
@@ -6929,7 +6935,7 @@ snapshots:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.3.3
+      typescript: 5.9.2
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
 
@@ -7008,7 +7014,7 @@ snapshots:
 
   typeorm-ts-node-commonjs@0.3.20: {}
 
-  typeorm@0.3.26(pg@8.16.3)(reflect-metadata@0.1.14)(ts-node@10.9.2(@types/node@20.19.14)(typescript@5.3.3)):
+  typeorm@0.3.26(pg@8.16.3)(reflect-metadata@0.1.14)(ts-node@10.9.2(@types/node@20.19.14)(typescript@5.9.2)):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 3.17.0
@@ -7027,7 +7033,7 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       pg: 8.16.3
-      ts-node: 10.9.2(@types/node@20.19.14)(typescript@5.3.3)
+      ts-node: 10.9.2(@types/node@20.19.14)(typescript@5.9.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color

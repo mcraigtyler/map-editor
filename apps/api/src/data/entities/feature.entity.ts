@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export type FeatureKind = 'point' | 'line' | 'polygon' | 'road';
+export type FeatureKind = 'point' | 'line' | 'polygon' | 'road' | 'lanelet';
 
 @Entity({ name: 'features' })
 export class FeatureEntity {
