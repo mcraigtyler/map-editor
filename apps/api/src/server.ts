@@ -6,8 +6,6 @@ async function start() {
   try {
     await AppDataSource.initialize();
     console.log('Database connected');
-    await AppDataSource.runMigrations();
-    console.log('Database migrations applied');
     app.listen(config.port, () => {
       console.log(`API server running on port ${config.port}`);
     });
