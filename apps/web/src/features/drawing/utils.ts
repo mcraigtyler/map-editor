@@ -54,12 +54,22 @@ function ensureLineStringCoordinates(coordinates: unknown): LineString['coordina
     return undefined;
   }
 
-  const [first] = coordinates;
-  if (!Array.isArray(first)) {
-    return undefined;
+  const sanitized: LineString['coordinates'] = [];
+
+  for (const coordinate of coordinates) {
+    if (!Array.isArray(coordinate) || coordinate.length < 2) {
+      return undefined;
+    }
+
+    const [lng, lat] = coordinate;
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+      return undefined;
+    }
+
+    sanitized.push([lng, lat]);
   }
 
-  return coordinates as LineString['coordinates'];
+  return sanitized;
 }
 
 export function computeLaneletSegments(
@@ -70,7 +80,26 @@ export function computeLaneletSegments(
     return undefined;
   }
 
-  const centerLine: TurfFeature<TurfLineString> = toTurfLineString(centerCoordinates);
+  const sanitizedCenter: LineString['coordinates'] = [];
+
+  centerCoordinates.forEach((coordinate) => {
+    if (!Array.isArray(coordinate) || coordinate.length < 2) {
+      return;
+    }
+
+    const [lng, lat] = coordinate;
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+      return;
+    }
+
+    sanitizedCenter.push([lng, lat]);
+  });
+
+  if (sanitizedCenter.length < 2) {
+    return undefined;
+  }
+
+  const centerLine: TurfFeature<TurfLineString> = toTurfLineString(sanitizedCenter);
   const left = lineOffset(centerLine, offsetMeters, { units: 'meters' });
   const right = lineOffset(centerLine, -offsetMeters, { units: 'meters' });
 
@@ -90,7 +119,7 @@ export function computeLaneletSegments(
 
   return {
     left: leftCoordinates,
-    center: centerCoordinates,
+    center: sanitizedCenter,
     right: rightCoordinates,
   };
 }

@@ -845,13 +845,13 @@ export function MapView() {
         return;
       }
 
-      if (event.key === '=' || event.key === '+') {
+      if (event.key === '.' || event.key === '>') {
         event.preventDefault();
         useDrawingStore.getState().adjustLaneletOffset(LANELET_OFFSET_STEP_METERS);
         updateLaneletPreview();
       }
 
-      if (event.key === '-' || event.key === '_') {
+      if (event.key === ',' || event.key === '<') {
         event.preventDefault();
         useDrawingStore.getState().adjustLaneletOffset(-LANELET_OFFSET_STEP_METERS);
         updateLaneletPreview();

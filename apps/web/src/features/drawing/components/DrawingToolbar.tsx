@@ -47,7 +47,7 @@ export function DrawingToolbar() {
     if (isDrawing && intent) {
       if (intent === 'lanelet') {
         const laneWidth = (laneletOffset * 2).toFixed(1);
-        return `Click to add centerline vertices. Double-click to finish. Use "=" to widen and "-" to narrow (${laneWidth} m total width, ${LANELET_OFFSET_STEP_METERS} m step).`;
+        return `Click to add centerline vertices. Double-click to finish. Use "." to widen and "," to narrow (${laneWidth} m total width, ${LANELET_OFFSET_STEP_METERS} m step).`;
       }
 
       return DRAWING_HINTS[intent as Exclude<DrawingIntent, 'lanelet'>];
