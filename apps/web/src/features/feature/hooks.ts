@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { createFeature, getFeature, updateFeature, updateFeatureTags } from './api';
+import { createFeature, deleteFeature, getFeature, updateFeature, updateFeatureTags } from './api';
 import { featureKeys, featureQueries } from './queries';
 import type { FeatureListParams, FeatureMutationPayload, UpdateFeatureTagsPayload } from './types';
 import type { ApiError } from '~/lib/apiClient';
@@ -120,6 +120,18 @@ export function useUpdateFeatureTagsMutation() {
     onSettled: (_result, _error, variables) => {
       queryClient.invalidateQueries({ queryKey: featureKeys.detail(variables.featureId) });
       queryClient.invalidateQueries({ queryKey: featureKeys.all });
+    },
+  });
+}
+
+export function useDeleteFeatureMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<void, ApiError, string>({
+    mutationFn: (featureId) => deleteFeature(featureId),
+    onSuccess: (_result, featureId) => {
+      queryClient.invalidateQueries({ queryKey: featureKeys.list() });
+      queryClient.removeQueries({ queryKey: featureKeys.detail(featureId), exact: true });
     },
   });
 }

@@ -56,3 +56,7 @@ export async function updateFeatureTags(
 ): Promise<Feature> {
   return apiClient.patch<Feature>(`/features/${featureId}/tags`, { json: payload });
 }
+
+export async function deleteFeature(featureId: string): Promise<void> {
+  await apiClient.delete<void>(`/features/${featureId}`);
+}
