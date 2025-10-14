@@ -77,10 +77,23 @@ Goal: Attach & edit attribute tags on features.
 - The `Features` list in the sidebar should be a scrollable list with a row per feature. Only show the Type, Updated DateTime and number of points that make up the feature.
 - Allow for deleting of a feature in the sidbar list of `Features`
 
-## Phase 9: Tag Editor
+## Phase 9: Lanelet Drawing tool
+- Add a new drawing tool for Lanelets.
+- Drawing lanelets is essentially drawing 3 Line segments where the mouse clicks define a center line around which the two line segments are separated by some defined distance.
+- The default distance between the Left and Right should be a reasonable width to indicate the width of a road.
+- The distance between the two line outer segments can be increased and decreased as you are drawing by hitting the `-` key to decrease distance and the `=` key to increase distance between the line segments from the centerline.
+- Draw the centerline as a dashed line and the outer lines as solid.
+- Editing a Lanelet should put all 3 lines in edit mode to adjust their individual points.
+
+## Phase 10: Lanelet Metadata
+- Automatically tag the lines: Left, Center, Right.
+- The Left and Right tagged lines will be based on the direction the lines were drawn.
+- Automatically associated the lines into a Lanelet.
+
+## Phase ??: Tag Editor
 
 
-## Phase 10: Feature Styles
+## Phase ??: Feature Styles
 
 
 ## Phase ??: API Cleanup/Refactor
