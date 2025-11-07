@@ -195,7 +195,8 @@
 					"point",
 					"line",
 					"polygon",
-					"road"
+					"road",
+					"lanelet"
 				]
 			},
 			"Record_string.string_": {

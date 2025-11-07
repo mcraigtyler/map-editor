@@ -12,7 +12,7 @@ export interface FeatureGeometry {
 }
 
 export interface FeatureProperties {
-  kind: 'point' | 'line' | 'polygon' | 'road';
+  kind: 'point' | 'line' | 'polygon' | 'road' | 'lanelet';
   tags: Record<string, string>;
   createdAt: string;
   updatedAt: string;
@@ -20,7 +20,7 @@ export interface FeatureProperties {
 
 export type FeatureKind = FeatureProperties['kind'];
 
-export type EditableFeatureKind = Extract<FeatureKind, 'point' | 'line' | 'polygon'>;
+export type EditableFeatureKind = Extract<FeatureKind, 'point' | 'line' | 'polygon' | 'lanelet'>;
 
 export interface Feature {
   type: 'Feature';
