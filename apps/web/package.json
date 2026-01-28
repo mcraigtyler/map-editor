@@ -1,0 +1,34 @@
+{
+  "name": "@maped/web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --max-warnings 0",
+    "preview": "vite preview",
+    "typecheck": "tsc --project tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.32.1",
+    "@turf/helpers": "^5.1.5",
+    "@turf/line-offset": "^5.1.5",
+    "maplibre-gl": "^3.5.2",
+    "maplibre-gl-draw": "^1.6.9",
+    "primeicons": "^7.0.0",
+    "primereact": "^10.6.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "zustand": "^5.0.8",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "@types/mapbox__mapbox-gl-draw": "^1.4.9",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.2.0"
+  }
+}
